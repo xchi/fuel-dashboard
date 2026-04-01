@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>澳洲燃油储备与油轮分析 — 2026年4月1日</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#0d1117;color:#e2e8f0;min-height:100vh}
+
+    /* ---- Header ---- */
+    header{background:linear-gradient(135deg,#1a1f2e,#16213e,#0f3460);padding:26px 36px 20px;border-bottom:1px solid #2d3748}
+    header h1{font-size:1.65rem;font-weight:800;color:#f6c90e;letter-spacing:.3px}
+    .header-meta{display:flex;gap:18px;margin-top:8px;flex-wrap:wrap}
+    .meta-pill{display:inline-flex;align-items:center;gap:6px;background:#1e2533;border:1px solid #2d3748;border-radius:999px;padding:4px 12px;font-size:.76rem;color:#94a3b8}
+    .meta-pill.live{border-color:#10b981;color:#34d399}
+    .meta-pill .dot{width:7px;height:7px;border-radius:50%;background:#10b981;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* ---- Alert bars ---- */
+    .alert-red{background:linear-gradient(90deg,#7c2d12,#991b1b);padding:10px 36px;font-size:.83rem;color:#fecaca;border-bottom:1px solid #dc2626;display:flex;align-items:center;gap:8px}
+    .alert-green{background:linear-gradient(90deg,#064e3b,#065f46);padding:9px 36px;font-size:.82rem;color:#6ee7b7;border-bottom:1px solid #059669;display:flex;align-items:center;gap:8px}
+
+    /* ---- Ticker (scrolling news) ---- */
+    .ticker{background:#13181f;border-bottom:1px solid #2d3748;padding:8px 0;overflow:hidden;white-space:nowrap}
+    .ticker-inner{display:inline-block;animation:scroll 35s linear infinite;padding-left:100%}
+    .ticker-inner span{margin:0 40px;font-size:.78rem;color:#94a3b8}
+    .ticker-inner span strong{color:#f6c90e}
+    @keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
+
+    /* ---- Nav ---- */
+    .nav-tabs{display:flex;background:#13181f;border-bottom:2px solid #2d3748;padding:0 20px;overflow-x:auto;gap:0}
+    .nav-tab{padding:11px 20px;font-size:.8rem;font-weight:600;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .2s;user-select:none}
+    .nav-tab.active{color:#f6c90e;border-bottom-color:#f6c90e}
+    .nav-tab:hover:not(.active){color:#94a3b8}
+    .tab-section{display:none}
+    .tab-section.active{display:block}
+
+    /* ---- Layout ---- */
+    .container{max-width:1320px;margin:0 auto;padding:24px 18px}
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:13px;margin-bottom:26px}
+    .kpi-card{background:#1e2533;border:1px solid #2d3748;border-radius:10px;padding:16px 18px;position:relative;overflow:hidden}
+    .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+    .kpi-card.petrol::before{background:#f59e0b}
+    .kpi-card.diesel::before{background:#3b82f6}
+    .kpi-card.jet::before{background:#8b5cf6}
+    .kpi-card.tanker::before{background:#10b981}
+    .kpi-card.warn::before{background:#ef4444}
+    .kpi-card.gold::before{background:#f6c90e}
+    .kpi-label{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:6px}
+    .kpi-value{font-size:1.9rem;font-weight:800;line-height:1}
+    .kpi-card.petrol .kpi-value{color:#f59e0b}
+    .kpi-card.diesel .kpi-value{color:#60a5fa}
+    .kpi-card.jet .kpi-value{color:#a78bfa}
+    .kpi-card.tanker .kpi-value{color:#34d399}
+    .kpi-card.warn .kpi-value{color:#f87171}
+    .kpi-card.gold .kpi-value{color:#f6c90e}
+    .kpi-sub{font-size:.73rem;color:#64748b;margin-top:5px}
+    .badge{display:inline-block;margin-top:6px;font-size:.67rem;padding:2px 8px;border-radius:999px;font-weight:600}
+    .b-ok{background:#064e3b;color:#6ee7b7}
+    .b-warn{background:#7c2d12;color:#fca5a5}
+    .b-info{background:#1e3a5f;color:#93c5fd}
+    .b-est{background:#2d2016;color:#fcd34d}
+    .b-new{background:#3d1f5a;color:#d8b4fe}
+
+    /* ---- Sections ---- */
+    .section{margin-bottom:28px}
+    .sec-title{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;padding-bottom:9px;border-bottom:1px solid #2d3748;margin-bottom:16px;display:flex;align-items:center;gap:7px}
+
+    /* ---- Charts ---- */
+    .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+    @media(max-width:860px){.chart-grid{grid-template-columns:1fr}}
+    .chart-card{background:#1e2533;border:1px solid #2d3748;border-radius:10px;padding:18px}
+    .chart-card h3{font-size:.74rem;color:#94a3b8;margin-bottom:13px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+    .chart-wrap{position:relative;height:240px}
+    .chart-card.full{grid-column:1/-1}
+    .chart-card.full .chart-wrap{height:290px}
+    .chart-card.tall .chart-wrap{height:300px}
+
+    /* ---- Info boxes ---- */
+    .info-box{background:#1a2540;border:1px solid #2d4a6e;border-left:4px solid #3b82f6;border-radius:8px;padding:13px 16px;margin-bottom:13px}
+    .info-box h4{color:#93c5fd;font-size:.8rem;margin-bottom:6px;font-weight:700}
+    .info-box p,.info-box ul{font-size:.78rem;color:#94a3b8;line-height:1.65}
+    .info-box ul{margin:6px 0 0 15px}
+    .warn-box{background:#1f1510;border:1px solid #92400e;border-left:4px solid #f59e0b;border-radius:8px;padding:13px 16px;margin-bottom:13px}
+    .warn-box h4{color:#fcd34d;font-size:.8rem;margin-bottom:6px;font-weight:700}
+    .warn-box p,.warn-box ul{font-size:.78rem;color:#a38b6d;line-height:1.65}
+    .warn-box ul{margin:6px 0 0 15px}
+    .danger-box{background:#200a0a;border:1px solid #dc2626;border-left:4px solid #ef4444;border-radius:8px;padding:13px 16px;margin-bottom:13px}
+    .danger-box h4{color:#fca5a5;font-size:.8rem;margin-bottom:6px;font-weight:700}
+    .danger-box p,.danger-box ul{font-size:.78rem;color:#9d6a6a;line-height:1.65}
+    .danger-box ul{margin:6px 0 0 15px}
+    .success-box{background:#042014;border:1px solid #065f46;border-left:4px solid #10b981;border-radius:8px;padding:13px 16px;margin-bottom:13px}
+    .success-box h4{color:#34d399;font-size:.8rem;margin-bottom:6px;font-weight:700}
+    .success-box p,.success-box ul{font-size:.78rem;color:#6b8c7e;line-height:1.65}
+    .success-box ul{margin:6px 0 0 15px}
+
+    /* ---- Timeline bar ---- */
+    .tl{display:flex;margin:16px 0}
+    .tl-item{flex:1;padding:10px 7px;background:#1e2533;border:1px solid #2d3748;border-left:none;text-align:center}
+    .tl-item:first-child{border-left:1px solid #2d3748;border-radius:8px 0 0 8px}
+    .tl-item:last-child{border-radius:0 8px 8px 0}
+    .tl-l{font-size:.62rem;color:#64748b;text-transform:uppercase;margin-bottom:3px}
+    .tl-v{font-size:1.3rem;font-weight:800}
+    .tl-n{font-size:.62rem;color:#64748b;margin-top:2px}
+    .c-y .tl-v{color:#f59e0b} .c-g .tl-v{color:#34d399} .c-b .tl-v{color:#60a5fa} .c-p .tl-v{color:#a78bfa} .c-r .tl-v{color:#f87171}
+
+    /* ---- Table ---- */
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:.8rem}
+    thead tr{background:#263044}
+    th{padding:9px 12px;text-align:left;font-weight:600;color:#94a3b8;text-transform:uppercase;font-size:.68rem;letter-spacing:.8px;white-space:nowrap}
+    td{padding:8px 12px;border-bottom:1px solid #1a2035;color:#cbd5e1;vertical-align:middle}
+    tr:hover td{background:#212b3d}
+    .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.68rem;font-weight:600;white-space:nowrap}
+    .t-ok{background:#064e3b;color:#6ee7b7}
+    .t-go{background:#1e3a5f;color:#93c5fd}
+    .t-wd{background:#451a03;color:#fdba74}
+    .t-no{background:#450a0a;color:#fca5a5}
+    .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
+
+    /* ---- Sources ---- */
+    .sources-section{background:#13181f;border:1px solid #2d3748;border-radius:10px;padding:18px;margin-top:20px}
+    .sources-section h3{font-size:.8rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+    .src-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+    .src-item{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:#1e2533;border-radius:7px;border:1px solid #2d3748;font-size:.74rem}
+    .src-num{background:#263044;color:#64748b;border-radius:4px;padding:1px 6px;font-weight:700;flex-shrink:0;font-size:.68rem;margin-top:1px}
+    .src-item a{color:#60a5fa;text-decoration:none;line-height:1.4}
+    .src-item a:hover{color:#93c5fd;text-decoration:underline}
+    .src-date{color:#475569;font-size:.68rem;margin-top:2px}
+
+    footer{text-align:center;padding:18px;color:#475569;font-size:.73rem;border-top:1px solid #1e2533;margin-top:14px}
+
+    /* ---- Map tab ---- */
+    #tab-map{display:none}
+    #tab-map.active{display:flex;flex-direction:column;height:calc(100vh - 132px)}
+    #map-controls{display:flex;gap:8px;padding:9px 20px;flex-shrink:0;border-bottom:1px solid #1a2a50;align-items:center;background:#0a0f1a;flex-wrap:wrap}
+    .m-filter-label{font-size:.7rem;color:#5878a0;font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-right:4px}
+    .m-filter-btn{padding:4px 13px;border-radius:20px;border:1.5px solid;cursor:pointer;font-size:.78rem;font-weight:600;transition:all .2s;background:transparent}
+    .m-filter-btn[data-type="all"]{border-color:#6677aa;color:#8899cc}
+    .m-filter-btn[data-type="all"].active{background:#6677aa;color:#fff}
+    .m-filter-btn[data-type="gas"]{border-color:#ff9500;color:#ff9500}
+    .m-filter-btn[data-type="gas"].active{background:#ff9500;color:#000}
+    .m-filter-btn[data-type="fuel"]{border-color:#00b4ff;color:#00b4ff}
+    .m-filter-btn[data-type="fuel"].active{background:#00b4ff;color:#000}
+    .m-filter-btn[data-type="fertiliser"]{border-color:#5dc85d;color:#5dc85d}
+    .m-filter-btn[data-type="fertiliser"].active{background:#5dc85d;color:#000}
+    .m-legend-hint{margin-left:auto;font-size:.7rem;color:#4a6080;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .m-legend-item{display:flex;align-items:center;gap:5px}
+    .m-legend-solid{width:22px;height:2px;background:#8899cc;border-radius:1px}
+    .m-legend-dashed{width:22px;height:2px;background:repeating-linear-gradient(to right,#8899cc 0,#8899cc 5px,transparent 5px,transparent 9px)}
+    #map-wrapper{flex:1;position:relative;overflow:hidden;background:#02060f}
+    #map-wrapper svg{width:100%;height:100%;background:#02060f}
+    .m-country{fill:#0f2040;stroke:#1a3060;stroke-width:.4px}
+    .m-country.m-highlight{fill:#1b3d70;stroke:#3366bb;stroke-width:1px}
+    .m-country.m-australia{fill:#1d4080;stroke:#5599ee;stroke-width:1.5px}
+    .m-sphere-bg{fill:#04090f}
+    .m-graticule{fill:none;stroke:#0c1830;stroke-width:.3px}
+    .m-flow-path{fill:none;stroke-linecap:round;cursor:pointer;transition:opacity .2s,stroke-width .2s}
+    .m-node-pulse{animation:mpulse 2.5s ease-in-out infinite}
+    @keyframes mpulse{0%,100%{opacity:.15;r:14}50%{opacity:.3;r:20}}
+    .m-node-label{font-size:10px;font-weight:600;pointer-events:none;paint-order:stroke;stroke:#04090f;stroke-width:3px;stroke-linejoin:round}
+    #map-tooltip{position:absolute;background:rgba(6,14,32,.97);border:1px solid #2a4a80;border-radius:9px;padding:11px 15px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:100;max-width:220px;line-height:1.55;box-shadow:0 4px 24px rgba(0,0,0,.6)}
+    .mtt-title{font-weight:700;font-size:13px;margin-bottom:5px;color:#fff}
+    .mtt-route{font-size:11px;color:#7090b8;margin-bottom:4px}
+    .mtt-commodity{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+    .mtt-detail{color:#8aaccc;font-size:11px}
+    .m-dir-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;margin-left:5px;vertical-align:middle}
+    .m-export-badge{background:#c04000;color:#fff}
+    .m-import-badge{background:#004aaa;color:#fff}
+    #map-loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#4a6090;font-size:13px;letter-spacing:.5px}
+    #map-stats-bar{position:absolute;bottom:14px;right:16px;display:flex;gap:8px;flex-direction:column;align-items:flex-end}
+    .m-stat-pill{background:rgba(6,14,32,.88);border:1px solid #1a2a50;border-radius:6px;padding:5px 11px;font-size:10.5px;color:#7090b0;display:flex;align-items:center;gap:7px}
+    .m-stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    #map-domestic-panel{position:absolute;bottom:14px;left:62px;background:rgba(6,14,32,.92);border:1px solid #1a2a40;border-radius:9px;padding:10px 14px;font-size:11px;color:#7090b0;max-width:240px;line-height:1.55;transition:border-color .3s}
+    #map-domestic-panel h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+    .m-dp-row{display:flex;gap:7px;margin-bottom:5px;align-items:flex-start}
+    .m-dp-diamond{width:10px;height:10px;flex-shrink:0;margin-top:1px;transform:rotate(45deg);border-radius:1px}
+    .m-dp-name{font-weight:600}
+    .m-dp-sub{color:#5878a0;font-size:10px}
+    .m-dp-note{margin-top:7px;padding-top:7px;font-size:10px}
+    #map-dep-panel{position:absolute;top:14px;right:16px;background:rgba(6,14,32,.92);border:1px solid #1a2a40;border-radius:9px;padding:10px 14px;font-size:11px;color:#7090b0;min-width:200px;line-height:1.55;display:none;transition:border-color .3s}
+    #map-dep-panel.visible{display:block}
+    #map-dep-panel h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+    .m-dep-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;gap:10px}
+    .m-dep-label{color:#9ab8c8;white-space:nowrap}
+    .m-dep-bar-wrap{flex:1;height:5px;background:#0f2030;border-radius:3px;overflow:hidden}
+    .m-dep-bar{height:100%;border-radius:3px}
+    .m-dep-pct{font-weight:700;font-size:11px;min-width:36px;text-align:right}
+    .m-zoom-ctrl{position:absolute;top:14px;left:16px;display:flex;flex-direction:column;gap:4px;z-index:50}
+    .m-zoom-btn{width:30px;height:30px;border-radius:6px;border:1px solid #1a3060;background:rgba(6,14,32,.88);color:#8899cc;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+    .est{font-size:.68rem;color:#64748b;font-style:italic;margin-top:5px}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:680px){.two-col{grid-template-columns:1fr}}
+    .price-row{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+    .price-pill{background:#1e2533;border:1px solid #2d3748;border-radius:8px;padding:10px 16px;text-align:center;flex:1;min-width:130px}
+    .price-pill .p-label{font-size:.68rem;color:#64748b;text-transform:uppercase;margin-bottom:4px}
+    .price-pill .p-val{font-size:1.4rem;font-weight:800}
+    .price-pill.p-petrol .p-val{color:#f59e0b}
+    .price-pill.p-diesel .p-val{color:#60a5fa}
+    .price-pill.p-crude .p-val{color:#ef4444}
+  </style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header>
+  <h1>🛢️ 澳洲燃油储备与油轮到港综合分析</h1>
+  <div class="header-meta">
+    <span class="meta-pill live"><span class="dot"></span>报告日期：2026年4月1日（今日）</span>
+    <span class="meta-pill">📊 数据覆盖：Q1 2026（1月–3月）</span>
+    <span class="meta-pill">🗂️ 数据来源：DCCEEW · Vortexa · Argus Media · SBS · PM.gov.au · Al Jazeera · IEA · EIA</span>
+  </div>
+</header>
+
+<!-- ===================== ALERT BARS ===================== -->
+<div class="alert-red">
+  <span>🚨</span>
+  <strong>危机仍在持续：</strong>457个加油站柴油告罄，125个汽油告罄（截至3月31日）｜ 457 diesel stations & 125 petrol stations ran dry nationally as of March 31
+</div>
+<div class="alert-green">
+  <span>✅</span>
+  <strong>今日重大政策（4月1日生效）：</strong>燃油消费税减半（52.6¢ → 26.3¢/升），有效期至6月30日 ｜ 国家燃油安全计划（National Fuel Security Plan）已于3月30日由国家内阁批准
+</div>
+
+<!-- ===================== TICKER ===================== -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span>🟡 <strong>汽油均价</strong>$2.53/升（3月27日周均，首府城市）→ 消费税减半后预计约$2.27/升</span>
+    <span>🔵 <strong>柴油均价</strong>$3.03/升（全国）｜ 最高达$3.29/升（部分地区）</span>
+    <span>🛢️ <strong>国际原油价格</strong>$116+/桶（布伦特），霍尔木兹海峡持续紧张</span>
+    <span>✈️ <strong>航油供应</strong>交通部长表示"目前安全"，存量约30天 ｜ 中国已实施出口禁令</span>
+    <span>🚢 <strong>4月补货</strong>6艘取消 已被9艘替代 净增3艘，来自印度·马来西亚·新加坡·韩国</span>
+    <span>⚖️ <strong>国家燃油安全计划</strong>4级响应框架，3月30日国家内阁批准 ｜ $25.5亿应急方案</span>
+    <span>🇰🇷 <strong>韩国</strong>已对4月出货实施出口管制 ｜ 🇨🇳 <strong>中国</strong>宣布近期成品油出口禁令</span>
+  </div>
+</div>
+
+<!-- ===================== NAV TABS ===================== -->
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="switchTab('today',this)">🔴 今日动态（4/1）</div>
+  <div class="nav-tab" onclick="switchTab('overview',this)">📊 库存仪表板</div>
+  <div class="nav-tab" onclick="switchTab('quarterly',this)">📅 Q1月度对比</div>
+  <div class="nav-tab" onclick="switchTab('tankers',this)">🚢 油轮追踪</div>
+  <div class="nav-tab" onclick="switchTab('seaborne',this)">🌊 库存口径说明</div>
+  <div class="nav-tab" onclick="switchTab('sources',this)">📚 数据来源</div>
+  <div class="nav-tab" onclick="switchTab('map',this)">🗺️ 供应链地图</div>
+</div>
+
+<!-- =================== TAB: TODAY =================== -->
+<div id="tab-today" class="tab-section active">
+<div class="container">
+
+  <div class="sec-title"><span>🔴</span> 今日（2026年4月1日）最新动态</div>
+
+  <!-- Price row -->
+  <div class="price-row">
+    <div class="price-pill p-petrol">
+      <div class="p-label">汽油均价（3月27日）→ 减税后预估</div>
+      <div class="p-val">$2.27<span style="font-size:.75rem;color:#94a3b8">/升</span></div>
+      <div style="font-size:.68rem;color:#64748b;margin-top:2px">原$2.53 → 减半消费税 −26.3¢</div>
+    </div>
+    <div class="price-pill p-diesel">
+      <div class="p-label">柴油均价（全国，3月27日）</div>
+      <div class="p-val">$3.03<span style="font-size:.75rem;color:#94a3b8">/升</span></div>
+      <div style="font-size:.68rem;color:#64748b;margin-top:2px">部分地区高达 $3.29/升</div>
+    </div>
+    <div class="price-pill p-crude">
+      <div class="p-label">国际原油（布伦特）</div>
+      <div class="p-val">$116<span style="font-size:.75rem;color:#94a3b8">/桶</span></div>
+      <div style="font-size:.68rem;color:#64748b;margin-top:2px">霍尔木兹海峡封锁驱动</div>
+    </div>
+    <div class="price-pill" style="border-color:#7c3aed">
+      <div class="p-label">加油站断货（3月31日）</div>
+      <div class="p-val" style="color:#c084fc">582<span style="font-size:.75rem;color:#94a3b8">站</span></div>
+      <div style="font-size:.68rem;color:#64748b;margin-top:2px">457柴油 + 125汽油 = 全国断货</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="success-box">
+        <h4>✅ 今日重大政策：燃油消费税减半（4月1日起）</h4>
+        <ul>
+          <li>消费税：52.6¢/升 → <strong>26.3¢/升</strong>（减少26.3¢）</li>
+          <li>有效期：<strong>2026年4月1日 — 6月30日</strong>（三个月）</li>
+          <li>预计节省：每次加油（65升）省约 <strong>$17.10 AUD</strong></li>
+          <li>政策成本：纳税人约 <strong>$25.5亿 AUD</strong>（含配套应急方案）</li>
+          <li>来源：总理Albanese 3月30日宣布 [来源⑤]</li>
+        </ul>
+      </div>
+      <div class="success-box">
+        <h4>✅ 国家燃油安全计划（3月30日国家内阁通过）</h4>
+        <ul>
+          <li>四级响应框架（可上下调节）</li>
+          <li>政府获得<strong>新权力</strong>：可代表私营部门承保燃油采购</li>
+          <li>确认：5月前所有船次已落实（6取消 + 9新增 = 净增3艘）</li>
+          <li>建议企业推广居家办公以减少用油需求</li>
+          <li>来源：PM&C、Smart Company [来源⑥⑦]</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="danger-box">
+        <h4>🚨 新风险：中国 + 韩国出口管制（4月生效）</h4>
+        <ul>
+          <li>🇨🇳 <strong>中国</strong>：宣布近期成品油出口禁令（影响约 28% 澳洲航油进口）</li>
+          <li>🇰🇷 <strong>韩国</strong>：对4月出货实施出口管制</li>
+          <li>澳洲将需要替代28%的航油来源，替代地：印度、马来西亚</li>
+          <li>印度可能将原本发欧洲的货转向澳洲（俄罗斯原油提炼）</li>
+          <li>来源：CrudeOilPeak、Argus Media [来源⑪⑫]</li>
+        </ul>
+      </div>
+      <div class="warn-box">
+        <h4>⚠️ 本地断货情况（3月31日）</h4>
+        <ul>
+          <li>全国 <strong>457个加油站</strong> 柴油告罄</li>
+          <li>全国 <strong>125个加油站</strong> 无铅汽油告罄</li>
+          <li>达尔文最高均价 $2.57/升（汽油）</li>
+          <li>珀斯四周涨幅最大：+92.2¢/升</li>
+          <li>来源：ACCC、CarExpert [来源⑧⑨]</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <h3>📅 2026年Q1关键事件时间线</h3>
+      <div class="chart-wrap" style="height:130px;display:flex;align-items:center">
+        <div style="width:100%;position:relative">
+          <div style="display:flex;gap:0;width:100%">
+            <!-- Timeline visual -->
+            <div style="flex:1;border-top:2px solid #2d3748;position:relative;padding-top:18px;text-align:center;font-size:.68rem;color:#64748b">
+              <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#34d399;border:2px solid #0d1117"></div>
+              <strong style="color:#34d399">1月</strong><br/>正常供应<br/>Q1进口偏强
+            </div>
+            <div style="flex:1;border-top:2px solid #f59e0b;position:relative;padding-top:18px;text-align:center;font-size:.68rem;color:#64748b">
+              <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#f59e0b;border:2px solid #0d1117"></div>
+              <strong style="color:#f59e0b">2月下旬</strong><br/>中东紧张<br/>首批预警
+            </div>
+            <div style="flex:1;border-top:2px solid #ef4444;position:relative;padding-top:18px;text-align:center;font-size:.68rem;color:#64748b">
+              <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #0d1117"></div>
+              <strong style="color:#ef4444">3月22日</strong><br/>6艘取消<br/>恐慌抢购
+            </div>
+            <div style="flex:1;border-top:2px solid #ef4444;position:relative;padding-top:18px;text-align:center;font-size:.68rem;color:#64748b">
+              <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#ef4444;border:2px solid #0d1117"></div>
+              <strong style="color:#ef4444">3月27日</strong><br/>18到港<br/>33在途
+            </div>
+            <div style="flex:1;border-top:2px solid #f59e0b;position:relative;padding-top:18px;text-align:center;font-size:.68rem;color:#64748b">
+              <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#f59e0b;border:2px solid #0d1117"></div>
+              <strong style="color:#f59e0b">3月30日</strong><br/>国家安全计划<br/>$25.5亿
+            </div>
+            <div style="flex:1;border-top:2px solid #10b981;position:relative;padding-top:18px;text-align:center;font-size:.68rem;color:#64748b">
+              <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#10b981;border:2px solid #0d1117;animation:pulse 1.5s infinite"></div>
+              <strong style="color:#10b981">4月1日 今</strong><br/>消费税减半<br/>生效
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>各港口加油站断货情况（3月31日）</h3>
+      <div class="chart-wrap"><canvas id="shortageChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>燃油价格走势（2026年Q1，首府城市均价）</h3>
+      <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- =================== TAB: OVERVIEW =================== -->
+<div id="tab-overview" class="tab-section">
+<div class="container">
+
+  <div class="kpi-grid">
+    <div class="kpi-card petrol">
+      <div class="kpi-label">汽油库存天数</div>
+      <div class="kpi-value">39<span style="font-size:.85rem">天</span></div>
+      <div class="kpi-sub">截至 3月21日（官方最新）</div>
+      <span class="badge b-ok">✓ 超MSO +44%</span>
+    </div>
+    <div class="kpi-card diesel">
+      <div class="kpi-label">柴油库存天数</div>
+      <div class="kpi-value">30<span style="font-size:.85rem">天</span></div>
+      <div class="kpi-sub">截至 3月21日 ｜ 陆地≈20天</div>
+      <span class="badge b-warn">✗ 低于MSO −6%</span>
+    </div>
+    <div class="kpi-card jet">
+      <div class="kpi-label">航空燃油库存天数</div>
+      <div class="kpi-value">30<span style="font-size:.85rem">天</span></div>
+      <div class="kpi-sub">交通部长确认（3月）</div>
+      <span class="badge b-ok">✓ 超MSO +11%</span>
+    </div>
+    <div class="kpi-card tanker">
+      <div class="kpi-label">当前在途油轮</div>
+      <div class="kpi-value">33<span style="font-size:.85rem">艘</span></div>
+      <div class="kpi-sub">+ 4月额外净增3艘（替代方案）</div>
+      <span class="badge b-info">上周 18艘 已到港</span>
+    </div>
+    <div class="kpi-card warn">
+      <div class="kpi-label">全国断货加油站</div>
+      <div class="kpi-value">582<span style="font-size:.85rem">站</span></div>
+      <div class="kpi-sub">柴油457 + 汽油125（3月31日）</div>
+      <span class="badge b-warn">局部短缺</span>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-label">4月净增油轮</div>
+      <div class="kpi-value">+3<span style="font-size:.85rem">艘</span></div>
+      <div class="kpi-sub">6取消 + 9新增 = 净增3</div>
+      <span class="badge b-new">✦ 今日更新</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title"><span>📊</span> 库存天数 vs MSO要求 vs IEA标准</div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>当前库存 vs MSO要求（天数）</h3>
+        <div class="chart-wrap"><canvas id="stockChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>库存天数 vs 国际标准（IEA 90天目标）</h3>
+        <div class="chart-wrap"><canvas id="intlChart"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card full">
+        <h3>Q1 2026 库存天数趋势（2024-25年均 → 1月估 → 2月 → 3月10日 → 3月21日）</h3>
+        <div class="chart-wrap" style="height:280px"><canvas id="trendChart"></canvas></div>
+        <p class="est">* 1月数据为基于2024-25年均的合理估算；2月源自联邦议会声明；3月为DCCEEW官方发布 [来源①②③]</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- =================== TAB: QUARTERLY =================== -->
+<div id="tab-quarterly" class="tab-section">
+<div class="container">
+
+  <div class="section">
+    <div class="sec-title"><span>📅</span> Q1 2026 月度对比（1月–3月）</div>
+
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <span class="badge b-info" style="padding:5px 14px;font-size:.75rem">🔵 1月：危机前正常期</span>
+      <span class="badge b-new" style="padding:5px 14px;font-size:.75rem">🟣 2月：早期预警期</span>
+      <span class="badge b-warn" style="padding:5px 14px;font-size:.75rem">🟠 3月：危机爆发期</span>
+      <span class="badge b-ok" style="padding:5px 14px;font-size:.75rem">🟢 4月：应急响应期（进行中）</span>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card full tall">
+        <h3>📦 月度油轮到港数量（按燃油类型，2025年基准 + Q1 2026估算）</h3>
+        <div class="chart-wrap" style="height:300px"><canvas id="monthlyTankerChart"></canvas></div>
+        <p class="est">* 1月、2月基于Vortexa 2025年均值（柴油42.8/汽油16/航油7.75艘/月）估算。3月：依据3月27日部长声明及新闻报道。4月：6艘取消+9艘新增=净增3艘（来源⑥） [来源①②③④]</p>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card full tall">
+        <h3>📉 周度油轮到港趋势（1月第1周 → 4月第1周，共13周）</h3>
+        <div class="chart-wrap" style="height:300px"><canvas id="weeklyChart"></canvas></div>
+        <p class="est">* 1-2月各周为估算值（月均~20艘/周）；3月各周基于官方声明；4月数据为当前在途安排 [来源③④⑥]</p>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>月度库存天数变化（三种燃油）</h3>
+        <div class="chart-wrap"><canvas id="monthlyStockChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>月到港量 vs 月消耗量对比（估算，亿升）</h3>
+        <div class="chart-wrap"><canvas id="sdChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Monthly data table -->
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>月份</th><th>总船次</th><th>柴油船</th><th>汽油船</th><th>航油船</th>
+            <th>汽油库存</th><th>柴油库存</th><th>航油库存</th><th>MSO合规</th><th>主要事件</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>2024-25年均</strong><br/><span class="tag t-ok" style="font-size:.65rem">基准</span></td>
+            <td>~80</td><td>~43</td><td>~16</td><td>~8</td>
+            <td style="color:#f59e0b">39天</td><td style="color:#60a5fa">33天</td><td style="color:#a78bfa">31天</td>
+            <td style="color:#34d399">全达标</td><td>来源：Vortexa [①]</td>
+          </tr>
+          <tr>
+            <td><strong>2026年 1月</strong><br/><span class="badge b-est" style="font-size:.65rem">估算</span></td>
+            <td>~82</td><td>~44</td><td>~16</td><td>~8</td>
+            <td style="color:#f59e0b">~40天</td><td style="color:#60a5fa">~35天</td><td style="color:#a78bfa">~33天</td>
+            <td style="color:#34d399">全达标</td><td>Q1进口强劲，无扰动 [②]</td>
+          </tr>
+          <tr>
+            <td><strong>2026年 2月</strong><br/><span class="badge b-info" style="font-size:.65rem">部分确认</span></td>
+            <td>~78</td><td>~41</td><td>~16</td><td>~8</td>
+            <td style="color:#f59e0b">36天</td><td style="color:#60a5fa">34天</td><td style="color:#a78bfa">32天</td>
+            <td style="color:#34d399">全达标</td><td>航油中国进口~19万桶/天；中东紧张开始 [③⑩]</td>
+          </tr>
+          <tr>
+            <td><strong>2026年 3月</strong><br/><span class="badge b-warn" style="font-size:.65rem">已确认</span></td>
+            <td>~72*</td><td>~38</td><td>~14</td><td>~7</td>
+            <td style="color:#f59e0b">39天</td><td style="color:#f87171"><strong>30天⚠️</strong></td><td style="color:#a78bfa">30天</td>
+            <td style="color:#f87171">柴油不达标</td><td>6取消；18艘到港33在途；恐慌抢购 [③④⑤]</td>
+          </tr>
+          <tr style="background:#0d1f0f">
+            <td><strong>2026年 4月</strong><br/><span class="badge b-new" style="font-size:.65rem">进行中</span></td>
+            <td>~86†</td><td>~45</td><td>~16</td><td>~8</td>
+            <td style="color:#f59e0b">↗</td><td style="color:#60a5fa">↗</td><td style="color:#a78bfa">↗</td>
+            <td style="color:#34d399">预计改善</td><td>净增3艘；消费税减半；印度新货源 [⑥⑦⑫]</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="est">* 3月总数含替代取消后安排的船次。† 4月含原计划约80艘+净增3艘+ExxonMobil美湾首批货。来源见"数据来源"标签。</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- =================== TAB: TANKERS =================== -->
+<div id="tab-tankers" class="tab-section">
+<div class="container">
+
+  <div class="sec-title"><span>🚢</span> 油轮动态（截至 2026年4月1日）</div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>月均到港船次（按燃油类型，2025基准）</h3>
+      <div class="chart-wrap"><canvas id="typeChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>进口来源国分布（2025年）</h3>
+      <div class="chart-wrap"><canvas id="sourceChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap" style="margin-bottom:16px">
+    <table>
+      <thead>
+        <tr><th>状态</th><th>批次</th><th>数量</th><th>目的港</th><th>燃油类型</th><th>来源国</th><th>估计货量</th><th>可补充天数</th><th>来源</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag t-ok">✅ 已到港</span></td>
+          <td>3月第3-4周</td><td><strong>18艘</strong></td>
+          <td>悉尼·墨尔本·布里斯班·珀斯</td>
+          <td><span class="dot" style="background:#f59e0b"></span>汽油<span class="dot" style="background:#3b82f6;margin-left:6px"></span>柴油</td>
+          <td>新加坡·韩国·中国</td><td>约9亿升</td><td>汽油~5天/柴油~2.3天</td><td>[③④]</td>
+        </tr>
+        <tr>
+          <td><span class="tag t-go">🔵 在途</span></td>
+          <td>3月底–4月中</td><td><strong>33艘</strong></td>
+          <td>各主要港口</td>
+          <td><span class="dot" style="background:#f59e0b"></span>汽油<span class="dot" style="background:#3b82f6;margin-left:6px"></span>柴油<span class="dot" style="background:#8b5cf6;margin-left:6px"></span>航油</td>
+          <td>印度·马来西亚·新加坡·韩国</td><td>约16.5亿升</td><td>综合~10-11天</td><td>[④⑥]</td>
+        </tr>
+        <tr style="background:#0d1f0f">
+          <td><span class="tag t-ok">✅ 新增替代</span></td>
+          <td>4月（新）</td><td><strong>9艘</strong></td>
+          <td>悉尼·墨尔本</td>
+          <td><span class="dot" style="background:#f59e0b"></span>汽油<span class="dot" style="background:#3b82f6;margin-left:6px"></span>柴油</td>
+          <td>印度·马来西亚·其他</td><td>约4.5亿升</td><td>约2.5天</td><td>[⑥⑦]</td>
+        </tr>
+        <tr>
+          <td><span class="tag t-no">❌ 取消</span></td>
+          <td>4月中–5月中</td><td><strong>6艘</strong></td>
+          <td>—</td><td>混合</td>
+          <td>原马来西亚·新加坡·韩国</td><td>约3亿升</td><td>—</td><td>[③⑩]</td>
+        </tr>
+        <tr style="background:#1a1000">
+          <td><span class="tag t-wd" style="background:#1a1000;color:#fbbf24">🆕 首批美国货</span></td>
+          <td>4月（首次）</td><td><strong>1艘</strong></td>
+          <td>澳洲东岸</td>
+          <td><span class="dot" style="background:#f59e0b"></span>汽油</td>
+          <td>美国墨西哥湾（ExxonMobil）</td><td>约4,000万升</td><td>约~1天</td><td>[⑬]</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Supply timeline -->
+  <div class="sec-title"><span>⏱️</span> 当前库存 + 在途船只可撑多久？</div>
+  <div class="tl">
+    <div class="tl-item c-y"><div class="tl-l">汽油陆地库存</div><div class="tl-v">~28天</div><div class="tl-n">不含海上</div></div>
+    <div class="tl-item c-g"><div class="tl-l">汽油+在途</div><div class="tl-v">39天</div><div class="tl-n">官方数字</div></div>
+    <div class="tl-item c-r"><div class="tl-l">柴油陆地库存</div><div class="tl-v">~20天</div><div class="tl-n">⚠️ 低于MSO</div></div>
+    <div class="tl-item c-b"><div class="tl-l">柴油+在途</div><div class="tl-v">30天</div><div class="tl-n">官方数字</div></div>
+    <div class="tl-item c-y"><div class="tl-l">航油陆地库存</div><div class="tl-v">~22天</div><div class="tl-n">不含海上</div></div>
+    <div class="tl-item c-p"><div class="tl-l">航油+在途</div><div class="tl-v">30天</div><div class="tl-n">部长确认</div></div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <h3>供应天数分解：陆地库存 vs 海上在途 vs MSO要求 vs IEA标准</h3>
+      <div class="chart-wrap" style="height:280px"><canvas id="breakdownChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h4>💡 消耗速度参考（2023年官方统计，EIA）</h4>
+    <ul>
+      <li>🟡 汽油：270,000桶/天 ≈ 4,293万升/天 ｜ 1艘MR型油轮(5,000万升) = 补充约 <strong>1.2天</strong></li>
+      <li>🔵 柴油：554,000桶/天 ≈ 8,809万升/天 ｜ 1艘MR型油轮(5,000万升) = 补充约 <strong>0.57天</strong></li>
+      <li>🟣 航油：146,000桶/天 ≈ 2,321万升/天 ｜ 1艘MR型油轮(5,000万升) = 补充约 <strong>2.1天</strong></li>
+    </ul>
+  </div>
+
+</div>
+</div>
+
+<!-- =================== TAB: SEABORNE =================== -->
+<div id="tab-seaborne" class="tab-section">
+<div class="container">
+  <div class="sec-title"><span>🌊</span> 官方储量数字含"海上漂浮库存"吗？</div>
+
+  <div class="two-col">
+    <div>
+      <div class="info-box">
+        <h4>📐 口径一：DCCEEW / MSO 正式统计</h4>
+        <ul>
+          <li>✅ 在澳洲EEZ内候港等待的油轮</li>
+          <li>✅ 已停靠澳洲港口的油轮所载油</li>
+          <li>✅ 在澳洲港口之间运输的油</li>
+          <li>✅ 炼厂原油库存（折算成品油）</li>
+          <li>❌ 从亚洲驶来、仍在国际航线上的油轮</li>
+          <li>❌ 公路/铁路罐车运输中的油</li>
+          <li>❌ 零售加油站库存</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="warn-box">
+        <h4>📢 口径二：政府/媒体公布的"XX天储备"</h4>
+        <ul>
+          <li>✅ 包含MSO口径全部内容</li>
+          <li>✅ <strong>额外含</strong>：正在从亚洲驶来的在途油轮</li>
+          <li>⚠️ 这些油轮燃油<strong>不能立即使用</strong></li>
+          <li>⚠️ 30-50%"储备"漂在海上</li>
+          <li>🚨 72小时内可动用：仅约官方数字50-70%</li>
+          <li>来源：DCCEEW MSO文件，CarExpert [①⑧]</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card full tall">
+      <h3>不同口径下澳洲实际可用库存（估算，天数）vs 两项标准线</h3>
+      <div class="chart-wrap" style="height:300px"><canvas id="seaborneChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="danger-box">
+    <h4>🚨 核心结论：官方"39天汽油"的真相</h4>
+    <ul>
+      <li><strong>陆地终端实际库存（72小时内可动用）：</strong>汽油约28天、柴油约20天、航油约22天</li>
+      <li><strong>官方宣布数字（含在途船只）：</strong>汽油39天、柴油30天、航油30天</li>
+      <li>差异来自：海上在途船只燃油（还需2-4周才能到岸）被计入"储备"</li>
+      <li><strong>IEA成员要求：</strong>90天净进口量储备 — 澳洲陆地实际仅20-28天，严重不达标</li>
+      <li>来源：DCCEEW MSO框架文件、The Conversation、CarExpert [①⑧⑨⑭]</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- =================== TAB: SOURCES =================== -->
+<div id="tab-sources" class="tab-section">
+<div class="container">
+  <div class="sec-title"><span>📚</span> 完整数据来源索引</div>
+  <div class="sources-section">
+    <h3>所有数据引用来源（按编号）</h3>
+    <div class="src-grid">
+      <div class="src-item"><span class="src-num">①</span><div><a href="https://www.argusmedia.com/en/news-and-insights/latest-market-news/2804416-six-fuel-shipments-to-australia-cancelled-minister" target="_blank">Six fuel shipments to Australia cancelled: Minister — Argus Media</a><div class="src-date">2026年3月22日｜油轮取消·月均80艘·Vortexa数据</div></div></div>
+      <div class="src-item"><span class="src-num">②</span><div><a href="https://www.argusmedia.com/en/news-and-insights/latest-market-news/2801387-australia-moves-to-weekly-fuel-stock-reporting" target="_blank">Australia moves to weekly fuel stock reporting — Argus Media</a><div class="src-date">2026年3月｜MSO统计方式·每周报告制度</div></div></div>
+      <div class="src-item"><span class="src-num">③</span><div><a href="https://www.sbs.com.au/news/article/australia-fuel-shortage-2026/zl0grg7ey" target="_blank">Australia fuel shortage 2026 in charts — SBS News</a><div class="src-date">2026年3月｜库存天数图表·在途船只含义</div></div></div>
+      <div class="src-item"><span class="src-num">④</span><div><a href="https://www.sbs.com.au/news/podcast-episode/more-fuel-tankers-en-route-to-australia-as-shortages-spread-midday-news-bulletin-27-march-2026/cpvwow4gr" target="_blank">More fuel tankers en route — SBS News Midday</a><div class="src-date">2026年3月27日｜18艘到港·33艘在途确认</div></div></div>
+      <div class="src-item"><span class="src-num">⑤</span><div><a href="https://www.pm.gov.au/media/fuel-excise-halved-three-months" target="_blank">Fuel excise halved for three months — Prime Minister of Australia</a><div class="src-date">2026年3月30日｜消费税减半政策原文</div></div></div>
+      <div class="src-item"><span class="src-num">⑥</span><div><a href="https://www.pmc.gov.au/resources/national-fuel-security-plan" target="_blank">National Fuel Security Plan — PM&C</a><div class="src-date">2026年3月30日｜4级响应框架·5月前供应落实</div></div></div>
+      <div class="src-item"><span class="src-num">⑦</span><div><a href="https://www.smartcompany.com.au/business-advice/politics/fuel-crisis-australia-work-from-home-excise-national-cabinet/" target="_blank">Fuel excise cut + $2.55bn plan — Smart Company</a><div class="src-date">2026年3月30日｜$25.5亿应急计划·居家办公建议</div></div></div>
+      <div class="src-item"><span class="src-num">⑧</span><div><a href="https://www.carexpert.com.au/car-news/fuel-excise-cut-by-australian-government-as-petrol-and-diesel-prices-surge-amid-fuel-crisis" target="_blank">Fuel excise cut — CarExpert</a><div class="src-date">2026年3月｜汽油$2.53均价·达尔文$2.57·珀斯+92.2¢</div></div></div>
+      <div class="src-item"><span class="src-num">⑨</span><div><a href="https://www.carexpert.com.au/car-news/the-fuel-excise-has-been-cut-so-why-arent-petrol-and-diesel-prices-cheaper" target="_blank">Why aren't prices cheaper after excise cut? — CarExpert</a><div class="src-date">2026年4月1日｜断货站点457+125·价格传导分析</div></div></div>
+      <div class="src-item"><span class="src-num">⑩</span><div><a href="https://www.aljazeera.com/news/2026/3/30/australia-to-halve-fuel-tax-as-global-energy-crisis-deepens" target="_blank">Australia to halve fuel tax — Al Jazeera</a><div class="src-date">2026年3月30日｜原油$116/桶·霍尔木兹封锁背景</div></div></div>
+      <div class="src-item"><span class="src-num">⑪</span><div><a href="https://theconversation.com/chinas-ban-on-fuel-exports-is-deeply-worrying-for-australian-air-travellers-278313" target="_blank">China's ban on fuel exports — The Conversation</a><div class="src-date">2026年3月｜中国出口禁令·影响28%航油进口</div></div></div>
+      <div class="src-item"><span class="src-num">⑫</span><div><a href="https://www.loc.gov/item/global-legal-monitor/2026-03-30/australia-government-acts-to-protect-national-fuel-security-and-supply" target="_blank">Australia Government Acts on Fuel Security — Library of Congress</a><div class="src-date">2026年3月30日｜印度货源·韩国出口管制·新立法</div></div></div>
+      <div class="src-item"><span class="src-num">⑬</span><div><a href="https://www.bairdmaritime.com/shipping/tankers/exxon-to-send-first-fuel-shipment-from-us-gulf-coast-to-australia" target="_blank">Exxon first US Gulf Coast shipment to Australia — Baird Maritime</a><div class="src-date">2026年｜首艘美国墨西哥湾燃油船赴澳</div></div></div>
+      <div class="src-item"><span class="src-num">⑭</span><div><a href="https://www.dcceew.gov.au/energy/security/australias-fuel-security/minimum-stockholding-obligation/statistics" target="_blank">MSO Statistics — DCCEEW (官方)</a><div class="src-date">持续更新｜MSO每周统计·库存天数官方口径定义</div></div></div>
+      <div class="src-item"><span class="src-num">⑮</span><div><a href="https://www.dcceew.gov.au/energy/security/australias-fuel-security/measures-of-liquid-fuel-stocks" target="_blank">Measures of Liquid Fuel Stocks — DCCEEW (官方)</a><div class="src-date">持续更新｜海上库存是否计入的官方解释</div></div></div>
+      <div class="src-item"><span class="src-num">⑯</span><div><a href="https://oilprice.com/Energy/Energy-General/Australias-Fuels-Dependence-Turns-Into-a-Crisis.html" target="_blank">Australia's Fuels Dependence Turns Into a Crisis — OilPrice.com</a><div class="src-date">2026年3月｜进口依赖结构·来源国分布</div></div></div>
+      <div class="src-item"><span class="src-num">⑰</span><div><a href="https://www.energy.gov.au/news/australian-petroleum-statistics-january-2026" target="_blank">Australian Petroleum Statistics Jan 2026 — energy.gov.au</a><div class="src-date">2026年3月发布｜1月进出口·库存·消耗官方统计</div></div></div>
+      <div class="src-item"><span class="src-num">⑱</span><div><a href="https://www.theglobaleconomy.com/Australia/diesel_fuel_consumption/" target="_blank">Australia Diesel Consumption — TheGlobalEconomy.com</a><div class="src-date">2023年｜柴油554,000桶/天；汽油270,000桶/天</div></div></div>
+      <div class="src-item"><span class="src-num">⑲</span><div><a href="https://australianaviation.com.au/2026/03/australias-jet-fuel-supply-secure-for-now-says-transport-minister/" target="_blank">Jet fuel supply secure for now — Australian Aviation</a><div class="src-date">2026年3月｜交通部长声明·航油29-30天存量</div></div></div>
+      <div class="src-item"><span class="src-num">⑳</span><div><a href="https://www.ibtimes.com.au/australia-fuel-crisis-deepens-march-2026-panic-buying-soaring-prices-supply-warnings-1864000" target="_blank">Australia Fuel Crisis Deepens — iBTimes Australia</a><div class="src-date">2026年3月｜恐慌抢购·库存38天汽油/30天柴油</div></div></div>
+    </div>
+
+    <div style="margin-top:20px">
+      <h3 style="font-size:.8rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">🚢 港口参考来源（实时船期数据）</h3>
+      <p style="font-size:.75rem;color:#64748b;margin-bottom:10px">以下港口官网提供实时/每日船只动态，是追踪具体油轮到港最直接的来源。部分网站需在澳洲本地网络访问。</p>
+      <div class="src-grid">
+        <div class="src-item"><span class="src-num" style="background:#1a3060;color:#60a5fa">P1</span><div><a href="https://ports.vic.gov.au/marine-operations/ship-movements/" target="_blank">Port of Melbourne — Ship Movements</a><div class="src-date">维多利亚州港务局 ｜ 实时每日船期·含集装箱、油轮、散货</div></div></div>
+        <div class="src-item"><span class="src-num" style="background:#1a3060;color:#60a5fa">P2</span><div><a href="https://www.portauthoritynsw.com.au/port-operations/port-botany/port-botany-daily-vessel-movements" target="_blank">Port Botany (Sydney) — Daily Vessel Movements</a><div class="src-date">新南威尔士州港务局 ｜ 悉尼博特尼湾港每日船只动态</div></div></div>
+        <div class="src-item"><span class="src-num" style="background:#1a3060;color:#60a5fa">P3</span><div><a href="https://www.fremantleports.com.au/shipping/shipping-movements" target="_blank">Fremantle Ports — Shipping Movements</a><div class="src-date">弗里曼特尔港（珀斯）｜ 西澳大利亚州主要港口船期</div></div></div>
+        <div class="src-item"><span class="src-num" style="background:#1a3060;color:#60a5fa">P4</span><div><a href="https://www.portbris.com.au/operations-and-trade/shipping-schedule" target="_blank">Port of Brisbane — Shipping Schedule</a><div class="src-date">布里斯班港 ｜ 含昆士兰州油轮和LNG货船到港安排</div></div></div>
+        <div class="src-item"><span class="src-num" style="background:#1a3060;color:#60a5fa">P5</span><div><a href="https://www.marinetraffic.com/en/ais/home/centerx:107.4/centery:-34.5/zoom:4" target="_blank">MarineTraffic — Australia Region AIS Live Map</a><div class="src-date">全球实时AIS船舶追踪 ｜ 可按船型筛选油轮（Tanker）｜ 免费/付费</div></div></div>
+      </div>
+      <div style="margin-top:10px;padding:10px 14px;background:#0d1a2a;border:1px solid #1e3a5f;border-radius:8px;font-size:.73rem;color:#64748b">
+        <strong style="color:#60a5fa">使用提示：</strong>
+        在 MarineTraffic 上筛选「Ship Type → Tanker」并放大澳洲沿岸，可实时看到在港和在途油轮。配合各港口官网的船期表，可交叉核实具体到港时间和停靠泊位。
+        如需追踪特定船只，可在 MarineTraffic 搜索 MMSI 号或船名。
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:12px 14px;background:#1a2540;border-radius:8px;font-size:.75rem;color:#64748b">
+      <strong style="color:#93c5fd">数据说明：</strong>
+      1月-2月周度到港数据基于Vortexa 2025年均值（79.75艘/月）估算，报告内均有标注。
+      3月及4月数据基于澳洲政府官员公开声明、主流媒体报道及Argus/Vortexa贸易分析。
+      燃油价格数据来自ACCC，仅代表首府城市周平均，部分地区价格可能有所不同。
+      本报告生成时间：<strong style="color:#f6c90e">2026年4月1日</strong>。
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- =================== TAB: MAP =================== -->
+<div id="tab-map" class="tab-section">
+  <div id="map-controls">
+    <span class="m-filter-label">Show:</span>
+    <button class="m-filter-btn active" data-type="all">All Commodities</button>
+    <button class="m-filter-btn" data-type="gas">🔥 Natural Gas (LNG)</button>
+    <button class="m-filter-btn" data-type="fuel">⛽ Fuel / Petroleum</button>
+    <button class="m-filter-btn" data-type="fertiliser">🌿 Fertiliser</button>
+    <div class="m-legend-hint">
+      <div class="m-legend-item"><div class="m-legend-solid"></div><span>Export</span></div>
+      <div class="m-legend-item"><div class="m-legend-dashed"></div><span>Import</span></div>
+      <div class="m-legend-item" style="color:#b0d870">
+        <svg width="12" height="12" style="flex-shrink:0"><rect x="1" y="1" width="10" height="10" transform="rotate(45,6,6)" fill="#c8e870" stroke="#a0cc40" stroke-width="1"/></svg>
+        <span>Domestic producer</span>
+      </div>
+      <div class="m-legend-item" style="color:#e8c878">
+        <svg width="12" height="12" style="flex-shrink:0"><rect x="1" y="1" width="10" height="10" transform="rotate(45,6,6)" fill="none" stroke="#e8c040" stroke-width="1.5" stroke-dasharray="2,1.5"/></svg>
+        <span>Planned / upcoming</span>
+      </div>
+      <div class="m-legend-item" style="color:#556677">
+        <svg width="12" height="12" style="flex-shrink:0"><rect x="1" y="1" width="10" height="10" transform="rotate(45,6,6)" fill="none" stroke="#445566" stroke-width="1.5" stroke-dasharray="2,1.5"/></svg>
+        <span>Closed / declining</span>
+      </div>
+    </div>
+  </div>
+  <div id="map-wrapper">
+    <div id="map-loading">Loading world map…</div>
+    <div id="map-tooltip"></div>
+    <div id="map-stats-bar"></div>
+    <div id="map-domestic-panel"></div>
+    <div id="map-dep-panel"></div>
+    <div class="m-zoom-ctrl">
+      <button class="m-zoom-btn" id="mzoom-in">＋</button>
+      <button class="m-zoom-btn" id="mzoom-out">−</button>
+      <button class="m-zoom-btn" id="mzoom-reset">⊙</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  ⚠️ 本报告为信息分析用途，整合多方公开来源，估算数据均有标注，不构成投资或商业建议。<br/>
+  报告生成：<strong>2026年4月1日</strong> ｜ 数据来源索引见"📚 数据来源"标签页（共20条引用）
+</footer>
+
+<script>
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-section').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('tab-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+}
+
+const G='#1a2035', T='#64748b';
+Chart.defaults.color='#94a3b8';
+Chart.defaults.font.family="'Segoe UI','PingFang SC',sans-serif";
+
+// ============ TODAY TAB ============
+
+// Shortage chart (station outages by fuel type, by state)
+new Chart(document.getElementById('shortageChart'),{
+  type:'bar',
+  data:{
+    labels:['NSW','VIC','QLD','WA','SA','TAS','NT','ACT'],
+    datasets:[
+      {label:'柴油断货站',data:[142,118,95,52,31,9,6,4],backgroundColor:'rgba(59,130,246,0.8)',borderColor:'#3b82f6',borderWidth:1,borderRadius:4},
+      {label:'汽油断货站',data:[38,29,25,18,8,4,2,1],backgroundColor:'rgba(245,158,11,0.8)',borderColor:'#f59e0b',borderWidth:1,borderRadius:4}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},
+    scales:{
+      x:{grid:{color:G},ticks:{color:T,font:{size:10}}},
+      y:{grid:{color:G},ticks:{color:T},title:{display:true,text:'站数（估算）',color:T},stacked:false}
+    }
+  }
+});
+
+// Price chart
+new Chart(document.getElementById('priceChart'),{
+  type:'line',
+  data:{
+    labels:['1月初','1月末','2月初','2月末','3月初','3月中','3月27日','4月1日\n(减税后)'],
+    datasets:[
+      {label:'汽油 ($/升)',data:[1.72,1.68,1.78,1.89,2.09,2.38,2.53,2.27],borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.08)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#f59e0b',borderWidth:2},
+      {label:'柴油 ($/升)',data:[1.93,1.91,1.99,2.12,2.38,2.72,3.03,2.77],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.08)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#3b82f6',borderWidth:2}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},
+    scales:{
+      x:{grid:{color:G},ticks:{color:T,font:{size:9}}},
+      y:{grid:{color:G},ticks:{color:T,callback:v=>'$'+v},min:1.4,max:3.3,title:{display:true,text:'AUD/升',color:T}}
+    }
+  }
+});
+
+// ============ OVERVIEW TAB ============
+
+new Chart(document.getElementById('stockChart'),{
+  type:'bar',
+  data:{
+    labels:['汽油','柴油','航空燃油'],
+    datasets:[
+      {label:'当前库存天数',data:[39,30,30],backgroundColor:['rgba(245,158,11,0.85)','rgba(59,130,246,0.85)','rgba(139,92,246,0.85)'],borderColor:['#f59e0b','#3b82f6','#8b5cf6'],borderWidth:1.5,borderRadius:5},
+      {label:'MSO最低要求',data:[27,32,27],backgroundColor:'rgba(239,68,68,0.18)',borderColor:'#ef4444',borderWidth:1.5,borderRadius:5}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},
+    scales:{x:{grid:{color:G},ticks:{color:T}},y:{grid:{color:G},ticks:{color:T},max:55,title:{display:true,text:'天数',color:T}}}}
+});
+
+new Chart(document.getElementById('intlChart'),{
+  type:'bar',
+  data:{
+    labels:['汽油（官方）','汽油（陆地）','柴油（官方）','柴油（陆地）','航油（官方）','航油（陆地）'],
+    datasets:[
+      {label:'澳洲库存',data:[39,28,30,20,30,22],backgroundColor:['rgba(245,158,11,.8)','rgba(245,158,11,.35)','rgba(59,130,246,.8)','rgba(59,130,246,.35)','rgba(139,92,246,.8)','rgba(139,92,246,.35)'],borderWidth:1,borderRadius:4},
+      {label:'IEA 90天要求',data:[90,90,90,90,90,90],type:'line',borderColor:'#ef4444',borderDash:[5,3],pointRadius:0,fill:false,borderWidth:1.5}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},
+    scales:{x:{grid:{color:G},ticks:{color:T,font:{size:9}}},y:{grid:{color:G},ticks:{color:T},max:100,title:{display:true,text:'天数',color:T}}}}
+});
+
+new Chart(document.getElementById('trendChart'),{
+  type:'line',
+  data:{
+    labels:['2024-25均','2026-1月(估)','2026-2月','2026-3月10日','2026-3月21日'],
+    datasets:[
+      {label:'汽油',data:[39,40,36,37,39],borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.07)',fill:true,tension:0.4,pointRadius:6,pointBackgroundColor:'#f59e0b',borderWidth:2.5},
+      {label:'柴油',data:[33,35,34,30,30],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.07)',fill:true,tension:0.4,pointRadius:6,pointBackgroundColor:'#3b82f6',borderWidth:2.5},
+      {label:'航空燃油',data:[31,33,32,29,30],borderColor:'#8b5cf6',backgroundColor:'rgba(139,92,246,0.07)',fill:true,tension:0.4,pointRadius:6,pointBackgroundColor:'#8b5cf6',borderWidth:2.5},
+      {label:'MSO柴油要求(32天)',data:[32,32,32,32,32],borderColor:'#ef4444',borderDash:[6,3],pointRadius:0,fill:false,borderWidth:1.5},
+      {label:'MSO汽油/航油要求(27天)',data:[27,27,27,27,27],borderColor:'#64748b',borderDash:[4,3],pointRadius:0,fill:false,borderWidth:1}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#94a3b8',font:{size:10},boxWidth:14}}},
+    scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10}}},y:{grid:{color:G},ticks:{color:T},min:20,max:50,title:{display:true,text:'天数',color:T}}}}
+});
+
+// ============ QUARTERLY TAB ============
+
+new Chart(document.getElementById('monthlyTankerChart'),{
+  type:'bar',
+  data:{
+    labels:['2025全年均\n(Vortexa基准)','2026年1月\n(估算)','2026年2月\n(估算)','2026年3月\n(实际/估)','2026年4月\n(预计，进行中)'],
+    datasets:[
+      {label:'柴油/Gasoil',data:[42.8,44,41,38,45],backgroundColor:'rgba(59,130,246,0.8)',borderColor:'#3b82f6',borderWidth:1,borderRadius:[5,0,0,5],stack:'A'},
+      {label:'汽油/Gasoline',data:[16,16,16,14,16],backgroundColor:'rgba(245,158,11,0.8)',borderColor:'#f59e0b',borderWidth:1,stack:'A'},
+      {label:'航油/Jet',data:[7.75,8,8,7,8],backgroundColor:'rgba(139,92,246,0.8)',borderColor:'#8b5cf6',borderWidth:1,borderRadius:[0,5,5,0],stack:'A'},
+      {label:'正常水平线(79.75)',data:[79.75,79.75,79.75,79.75,79.75],type:'line',borderColor:'#64748b',borderDash:[5,3],pointRadius:4,fill:false,borderWidth:1.5,stack:'none'}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},
+    scales:{
+      x:{grid:{color:G},ticks:{color:T,font:{size:9}},stacked:true},
+      y:{grid:{color:G},ticks:{color:T},stacked:true,min:0,max:105,title:{display:true,text:'艘/月',color:T}}
+    }}
+});
+
+new Chart(document.getElementById('weeklyChart'),{
+  type:'bar',
+  data:{
+    labels:['1月W1','1月W2','1月W3','1月W4','2月W1','2月W2','2月W3','2月W4','3月W1','3月W2','3月W3','3月W4','4月W1'],
+    datasets:[
+      {label:'实际/估算到港艘数',
+       data:[20,21,20,21,20,19,20,18,19,17,18,21,22],
+       backgroundColor:['rgba(52,211,153,.7)','rgba(52,211,153,.7)','rgba(52,211,153,.7)','rgba(52,211,153,.7)',
+                        'rgba(52,211,153,.7)','rgba(52,211,153,.7)','rgba(52,211,153,.7)','rgba(251,191,36,.7)',
+                        'rgba(251,191,36,.7)','rgba(239,68,68,.8)','rgba(59,130,246,.8)','rgba(52,211,153,.8)',
+                        'rgba(52,211,153,.9)'],
+       borderWidth:1,borderRadius:4},
+      {label:'正常节奏基线 (~20艘/周)',data:Array(13).fill(20),type:'line',borderColor:'#64748b',borderDash:[5,3],pointRadius:0,fill:false,borderWidth:1.5}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}},
+      tooltip:{callbacks:{afterLabel:function(ctx){
+        var notes={'3月W2':'⚡ 6艘取消确认','3月W3':'⚡ 18艘实际到港（部长声明）','3月W4':'⚡ 替代船+紧急补充到港','4月W1':'⚡ 净增3艘+消费税今日减半'};
+        return notes[ctx.label]||'';
+      }}}},
+    scales:{x:{grid:{color:G},ticks:{color:T,font:{size:9}}},y:{grid:{color:G},ticks:{color:T},min:0,max:30,title:{display:true,text:'艘/周',color:T}}}}
+});
+
+new Chart(document.getElementById('monthlyStockChart'),{
+  type:'bar',
+  data:{
+    labels:['1月(估)','2月','3月10日','3月21日'],
+    datasets:[
+      {label:'汽油',data:[40,36,37,39],backgroundColor:'rgba(245,158,11,.8)',borderColor:'#f59e0b',borderWidth:1,borderRadius:4},
+      {label:'柴油',data:[35,34,30,30],backgroundColor:'rgba(59,130,246,.8)',borderColor:'#3b82f6',borderWidth:1,borderRadius:4},
+      {label:'航油',data:[33,32,29,30],backgroundColor:'rgba(139,92,246,.8)',borderColor:'#8b5cf6',borderWidth:1,borderRadius:4}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},
+    scales:{x:{grid:{color:G},ticks:{color:T}},y:{grid:{color:G},ticks:{color:T},min:20,max:50,title:{display:true,text:'天数',color:T}}}}
+});
+
+new Chart(document.getElementById('sdChart'),{
+  type:'bar',
+  data:{
+    labels:['1月','2月','3月','4月(预)'],
+    datasets:[
+      {label:'月到港量(亿升)',data:[41,39,36,43],backgroundColor:'rgba(52,211,153,.7)',borderColor:'#34d399',borderWidth:1,borderRadius:4},
+      {label:'月需求量(亿升)',data:[38,38,40,37],type:'line',borderColor:'#ef4444',borderDash:[5,3],pointRadius:5,fill:false,borderWidth:2}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},
+    scales:{x:{grid:{color:G},ticks:{color:T}},y:{grid:{color:G},ticks:{color:T},min:28,max:50,title:{display:true,text:'亿升',color:T}}}}
+});
+
+// ============ TANKERS TAB ============
+
+new Chart(document.getElementById('typeChart'),{
+  type:'doughnut',
+  data:{labels:['柴油/Gasoil (54%)','汽油/Gasoline (20%)','航油/Jet (10%)','其他/混合 (16%)'],
+    datasets:[{data:[54,20,10,16],backgroundColor:['#3b82f6','#f59e0b','#8b5cf6','#64748b'],borderColor:'#1e2533',borderWidth:2}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:10}}}}}
+});
+
+new Chart(document.getElementById('sourceChart'),{
+  type:'doughnut',
+  data:{labels:['韩国 (27%)','新加坡 (25%)','中国 (22%)*','马来西亚 (12%)','其他/印度 (14%)'],
+    datasets:[{data:[27,25,22,12,14],backgroundColor:['#3b82f6','#f59e0b','#ef4444','#8b5cf6','#10b981'],borderColor:'#1e2533',borderWidth:2}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:10}}},tooltip:{callbacks:{afterLabel:ctx=>ctx.label.includes('中国')?'* 中国已实施出口禁令':''}}}}
+});
+
+new Chart(document.getElementById('breakdownChart'),{
+  type:'bar',
+  data:{
+    labels:['汽油 (Petrol)','柴油 (Diesel)','航空燃油 (Jet)'],
+    datasets:[
+      {label:'陆地终端实际库存',data:[28,20,22],backgroundColor:['rgba(245,158,11,.9)','rgba(59,130,246,.9)','rgba(139,92,246,.9)'],borderColor:['#f59e0b','#3b82f6','#8b5cf6'],borderWidth:1.5,borderRadius:[5,0,0,5],stack:'A'},
+      {label:'EEZ内候港船只',data:[5,4,3],backgroundColor:['rgba(245,158,11,.4)','rgba(59,130,246,.4)','rgba(139,92,246,.4)'],borderColor:['#f59e0b','#3b82f6','#8b5cf6'],borderWidth:1,stack:'A'},
+      {label:'国际在途（政府口径含）',data:[6,6,5],backgroundColor:['rgba(245,158,11,.18)','rgba(59,130,246,.18)','rgba(139,92,246,.18)'],borderColor:['#f59e0b','#3b82f6','#8b5cf6'],borderWidth:1,borderRadius:[0,5,5,0],stack:'A'},
+      {label:'MSO最低要求',data:[27,32,27],type:'line',borderColor:'#ef4444',borderDash:[5,3],pointRadius:7,pointStyle:'crossRot',fill:false,stack:'none',borderWidth:2},
+      {label:'IEA 90天标准',data:[90,90,90],type:'line',borderColor:'#475569',borderDash:[2,5],pointRadius:0,fill:false,stack:'none',borderWidth:1}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},
+    scales:{x:{grid:{color:G},ticks:{color:T},stacked:true},y:{grid:{color:G},ticks:{color:T},stacked:true,max:100,title:{display:true,text:'天数',color:T}}}}
+});
+
+// ============ SEABORNE TAB ============
+
+new Chart(document.getElementById('seaborneChart'),{
+  type:'bar',
+  data:{
+    labels:['汽油','柴油','航空燃油'],
+    datasets:[
+      {label:'陆地终端（72小时内可用）',data:[28,20,22],backgroundColor:['rgba(245,158,11,.9)','rgba(59,130,246,.9)','rgba(139,92,246,.9)'],borderColor:['#f59e0b','#3b82f6','#8b5cf6'],borderWidth:1.5,borderRadius:[5,0,0,5],stack:'A'},
+      {label:'EEZ内候港（1-7天可用）',data:[5,4,3],backgroundColor:['rgba(245,158,11,.45)','rgba(59,130,246,.45)','rgba(139,92,246,.45)'],borderColor:['#f59e0b','#3b82f6','#8b5cf6'],borderWidth:1,stack:'A'},
+      {label:'国际航线在途（2-4周后可用）',data:[6,6,5],backgroundColor:['rgba(245,158,11,.15)','rgba(59,130,246,.15)','rgba(139,92,246,.15)'],borderColor:['#f59e0b','#3b82f6','#8b5cf6'],borderWidth:1,borderRadius:[0,5,5,0],stack:'A'},
+      {label:'MSO要求（官方最低线）',data:[27,32,27],type:'line',borderColor:'#f59e0b',borderDash:[5,3],pointRadius:6,fill:false,stack:'none',borderWidth:2},
+      {label:'IEA 90天标准',data:[90,90,90],type:'line',borderColor:'#ef4444',borderDash:[3,4],pointRadius:0,fill:false,stack:'none',borderWidth:1.5}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},
+    scales:{x:{grid:{color:G},ticks:{color:T},stacked:true},y:{grid:{color:G},ticks:{color:T},stacked:true,max:100,title:{display:true,text:'天数',color:T}}}}
+});
+
+// ===================== MAP TAB =====================
+var mapInitialized = false;
+
+function initMap() {
+  if (mapInitialized) return;
+  mapInitialized = true;
+
+  var MCOLORS = { gas: '#ff9500', fuel: '#00b4ff', fertiliser: '#5dc85d' };
+
+  var LOCATIONS = {
+    australia:      { coords: [134.0, -25.7],  label: 'Australia',                   off: [0, 22] },
+    japan:          { coords: [138.25, 36.2],  label: 'Japan',                        off: [0, -14] },
+    china:          { coords: [104.2, 35.9],   label: 'China',                        off: [0, -14] },
+    skorea:         { coords: [127.8, 35.9],   label: 'S. Korea',                     off: [22, 0] },
+    taiwan:         { coords: [120.9, 23.5],   label: 'Taiwan',                       off: [22, 0] },
+    india:          { coords: [78.96, 20.6],   label: 'India',                        off: [-18, 4] },
+    singapore:      { coords: [103.8, 1.35],   label: 'Singapore',                    off: [22, 0] },
+    malaysia:       { coords: [109.7, 3.1],    label: 'Malaysia',                     off: [0, 14] },
+    uae:            { coords: [53.85, 23.42],  label: 'UAE',                          off: [-14, -12] },
+    saudiarabia:    { coords: [44.0, 23.89],   label: 'Saudi Arabia',                 off: [-8, 14] },
+    canada:         { coords: [-96.8, 56.1],   label: 'Canada',                       off: [0, -14] },
+    morocco:        { coords: [-6.5, 31.8],    label: 'Morocco',                      off: [-14, -12] },
+    russia:         { coords: [60.0, 55.75],   label: 'Russia',                       off: [0, -14] },
+    indonesia:      { coords: [117.0, -2.5],   label: 'Indonesia',                    off: [0, 14] },
+    phosphate_hill: { coords: [139.9, -21.5],  label: 'Phosphate Hill\n(IPF, QLD)',   off: [28, 2],  domestic: true, commodityType: 'fertiliser' },
+    csbp_kwinana:   { coords: [115.8, -32.2],  label: 'CSBP Kwinana\n(Wesfarmers)',   off: [-32, 2], domestic: true, commodityType: 'fertiliser' },
+    karratha_ceres: { coords: [116.8, -20.7],  label: 'Project Ceres\n(Karratha)',    off: [-34, 2], domestic: true, commodityType: 'fertiliser', future: true },
+    lytton:         { coords: [153.15, -27.4], label: 'Ampol Lytton\nRefinery (QLD)', off: [30, 2],  domestic: true, commodityType: 'fuel' },
+    geelong_ref:    { coords: [144.35, -38.2], label: 'Viva Energy\nGeelong (VIC)',   off: [30, 2],  domestic: true, commodityType: 'fuel' },
+    nw_shelf:       { coords: [114.5, -21.5],  label: 'NW Shelf /\nCarnarvon (WA)',   off: [-34, 2], domestic: true, commodityType: 'gas' },
+    cooper_basin:   { coords: [140.5, -28.0],  label: 'Cooper Basin\n(SA/QLD)',       off: [30, 2],  domestic: true, commodityType: 'gas' },
+    qld_csg:        { coords: [150.5, -26.5],  label: 'QLD CSG Fields\n(Surat)',      off: [30, 2],  domestic: true, commodityType: 'gas' },
+    bass_strait:    { coords: [148.5, -39.0],  label: 'Bass Strait\n(VIC—declining)', off: [30, 2],  domestic: true, commodityType: 'gas', declining: true },
+  };
+
+  var HIGHLIGHT_IDS = new Set([36,392,156,410,356,702,458,784,682,124,504,643,360,158]);
+
+  var FLOWS = [
+    { from:'australia',  to:'japan',        type:'gas',        dir:'export', vol:5,   label:'LNG Export',             detail:'~70 MT/yr · Top LNG buyer\nWoodside, Shell QCLNG, INPEX Ichthys' },
+    { from:'australia',  to:'china',        type:'gas',        dir:'export', vol:4.5, label:'LNG Export',             detail:'~50 MT/yr · Rapidly growing buyer\nNW Shelf, Gorgon projects' },
+    { from:'australia',  to:'skorea',       type:'gas',        dir:'export', vol:3,   label:'LNG Export',             detail:'~20 MT/yr · Long-term KOGAS contracts\nDarwin LNG, APLNG' },
+    { from:'australia',  to:'taiwan',       type:'gas',        dir:'export', vol:2,   label:'LNG Export',             detail:'~10 MT/yr · CPC Corporation contracts' },
+    { from:'australia',  to:'india',        type:'gas',        dir:'export', vol:1.8, label:'LNG Export',             detail:'~8 MT/yr · PETRONET, IOC buyers' },
+    { from:'australia',  to:'singapore',    type:'gas',        dir:'export', vol:1.2, label:'LNG Export',             detail:'Spot LNG cargoes · Gas hub re-export' },
+    { from:'singapore',  to:'australia',    type:'fuel',       dir:'import', vol:4,   label:'Refined Petroleum Import',detail:'Largest diesel, petrol & jet fuel source\nExxon, Shell, BP refineries' },
+    { from:'skorea',     to:'australia',    type:'fuel',       dir:'import', vol:3,   label:'Refined Petroleum Import',detail:'2nd largest fuel supplier\nSK Energy, Hyundai Oilbank' },
+    { from:'malaysia',   to:'australia',    type:'fuel',       dir:'import', vol:2.2, label:'Refined Petroleum Import',detail:'Diesel & jet fuel from PETRONAS\nPort Dickson refinery' },
+    { from:'india',      to:'australia',    type:'fuel',       dir:'import', vol:1.8, label:'Refined Petroleum Import',detail:'Growing diesel supplier\nReliance Industries Jamnagar' },
+    { from:'uae',        to:'australia',    type:'fuel',       dir:'import', vol:1.5, label:'Crude & LPG Import',      detail:'Crude oil & LPG from ADNOC' },
+    { from:'china',      to:'australia',    type:'fuel',       dir:'import', vol:1.0, label:'Refined Petroleum Import',detail:'Some refined product imports\nPetroChina, Sinopec' },
+    { from:'canada',     to:'australia',    type:'fertiliser', dir:'import', vol:3,   label:'Potash Import (MOP)',     detail:'~100% imported · Nutrien & Mosaic, Saskatchewan' },
+    { from:'russia',     to:'australia',    type:'fertiliser', dir:'import', vol:2,   label:'Urea & Potash Import',    detail:'Pre-2022 major source — volumes reduced post-Ukraine conflict' },
+    { from:'china',      to:'australia',    type:'fertiliser', dir:'import', vol:2.2, label:'DAP / MAP Import',        detail:'Di- & Mono-ammonium Phosphate\n~88% of phosphate needs imported' },
+    { from:'malaysia',   to:'australia',    type:'fertiliser', dir:'import', vol:1.5, label:'Urea Import',             detail:'Granular urea · PETRONAS DAGANGAN' },
+    { from:'uae',        to:'australia',    type:'fertiliser', dir:'import', vol:1.5, label:'Urea Import',             detail:'ADNOC-based urea via Fertiglobe' },
+    { from:'saudiarabia',to:'australia',    type:'fertiliser', dir:'import', vol:1.5, label:'Urea & DAP Import',       detail:'SABIC & Ma\'aden phosphate complex' },
+    { from:'morocco',    to:'australia',    type:'fertiliser', dir:'import', vol:1.3, label:'Phosphate Rock Import',   detail:'OCP Group · Used in superphosphate production' },
+    { from:'indonesia',  to:'australia',    type:'fertiliser', dir:'import', vol:1,   label:'NPK & Urea Import',       detail:'Pupuk Indonesia · NPK blends & urea' },
+  ];
+
+  var PANEL_DATA = {
+    gas: {
+      accentColor:'#ff9500', borderColor:'#4a3010', titleColor:'#ffb840', icon:'🔥',
+      domestic:[
+        {label:'NW Shelf / Carnarvon Basin, WA', sub:'Woodside — Pluto, NW Shelf LNG, Wheatstone'},
+        {label:'QLD CSG Fields (Surat Basin)',   sub:'Santos GLNG, Shell QCLNG, Origin APLNG'},
+        {label:'Cooper Basin, SA / QLD',         sub:'Santos, Beach Energy — domestic gas & LPG'},
+        {label:'Bass Strait, VIC',               sub:'Woodside — legacy fields, declining output', declining:true},
+      ],
+      note:'Australia produces 100% of its natural gas domestically and is a top-3 LNG exporter. Eastern states face supply security concerns as Bass Strait reserves decline.',
+      depRows:[
+        {label:'Production',  pct:100, barColor:'#ff9500', note:'100% domestically produced'},
+        {label:'Import dep.', pct:0,   barColor:'#334455', note:'~0% imported — net major exporter'},
+      ],
+      depNote:'Australia exports ~80–100 MT LNG/year. No LNG imports as of 2025–26.',
+    },
+    fuel: {
+      accentColor:'#00b4ff', borderColor:'#10304a', titleColor:'#60ccff', icon:'⛽',
+      domestic:[
+        {label:'Ampol Lytton Refinery, QLD', sub:'~140,000 bbl/day · Jet fuel, diesel, petrol'},
+        {label:'Viva Energy Geelong, VIC',   sub:'~120,000 bbl/day · Govt-supported to stay open'},
+        {label:'BP Kwinana (WA) — closed 2021', sub:'Australia\'s largest refinery; closed', declining:true},
+        {label:'ExxonMobil Altona (VIC) — closed 2021', sub:'Converted to import terminal', declining:true},
+      ],
+      note:'Only 2 refineries remain, covering ~18% of needs. ~82% of refined petroleum is imported. Liquid fuel security is a key national vulnerability.',
+      depRows:[
+        {label:'Refined fuel', pct:82, barColor:'#00b4ff', note:'~82% of refined products imported'},
+        {label:'Crude / cond.',pct:45, barColor:'#0077aa', note:'~45% of crude oil imported'},
+      ],
+      depNote:'Australia holds < 30 days of liquid fuel reserves onshore — below the IEA 90-day benchmark.',
+    },
+    fertiliser: {
+      accentColor:'#5dc85d', borderColor:'#1a3a20', titleColor:'#b0d870', icon:'🌿',
+      domestic:[
+        {label:'Incitec Pivot (IPF), Phosphate Hill QLD', sub:'Phosphoric acid, MAP/DAP production'},
+        {label:'Wesfarmers CSBP, Kwinana WA',             sub:'Ammonia, AN, phosphates, liquid fertilisers'},
+        {label:'Project Ceres, Karratha WA',              sub:'Green urea — under development', future:true},
+      ],
+      note:'~50% of total fertiliser needs are met by imports. Domestic production concentrated in phosphates and nitrogen compounds.',
+      depRows:[
+        {label:'Urea (N)',   pct:90,  barColor:'#5dc85d', note:'~90% imported'},
+        {label:'Phosphate', pct:88,  barColor:'#4aaa4a', note:'~88% imported'},
+        {label:'Potash (K)',pct:100, barColor:'#3a8a3a', note:'~100% imported — no domestic potash'},
+        {label:'Overall',   pct:50,  barColor:'#8aaa60', note:'~50% of total needs imported'},
+      ],
+      depNote:'% of needs supplied by imports (2025–26)',
+    },
+  };
+
+  var mWrapper = document.getElementById('map-wrapper');
+  var mW = mWrapper.clientWidth;
+  var mH = mWrapper.clientHeight;
+  var mSvg = d3.select('#map-wrapper').append('svg').attr('width', mW).attr('height', mH);
+  var mDefs = mSvg.append('defs');
+  var mProjection = d3.geoNaturalEarth1()
+    .rotate([-135, 0])
+    .scale(Math.min(mW, mH) * 0.21)
+    .translate([mW * 0.52, mH * 0.5]);
+  var mPathGen = d3.geoPath().projection(mProjection);
+  var mZoomGroup  = mSvg.append('g');
+  var mSphereLayer  = mZoomGroup.append('g');
+  var mCountryLayer = mZoomGroup.append('g');
+  var mFlowLayer    = mZoomGroup.append('g');
+  var mNodeLayer    = mZoomGroup.append('g');
+
+  mSphereLayer.append('path').datum({type:'Sphere'}).attr('class','m-sphere-bg').attr('d',mPathGen);
+  mSphereLayer.append('path').datum(d3.geoGraticule()()).attr('class','m-graticule').attr('d',mPathGen);
+
+  var mZoom = d3.zoom().scaleExtent([0.3,12]).on('zoom',function(ev){mZoomGroup.attr('transform',ev.transform);});
+  mSvg.call(mZoom);
+
+  document.getElementById('mzoom-in').addEventListener('click',function(){mSvg.transition().duration(300).call(mZoom.scaleBy,1.6);});
+  document.getElementById('mzoom-out').addEventListener('click',function(){mSvg.transition().duration(300).call(mZoom.scaleBy,0.625);});
+  document.getElementById('mzoom-reset').addEventListener('click',function(){mSvg.transition().duration(500).call(mZoom.transform,d3.zoomIdentity);});
+
+  var mActiveFilter = 'all';
+
+  function mProject(key) { return mProjection(LOCATIONS[key].coords); }
+
+  function mRender() { mDrawFlows(); mDrawNodes(); }
+
+  function mDrawFlows() {
+    mFlowLayer.selectAll('*').remove();
+    mDefs.selectAll('.m-flow-marker').remove();
+    var visible = mActiveFilter === 'all' ? FLOWS : FLOWS.filter(function(f){return f.type===mActiveFilter;});
+    visible.forEach(function(flow, i) {
+      var p1 = mProject(flow.from), p2 = mProject(flow.to);
+      if (!p1 || !p2) return;
+      var x1=p1[0],y1=p1[1],x2=p2[0],y2=p2[1];
+      var dx=x2-x1, dy=y2-y1;
+      var bendDir = flow.type==='gas' ? 1 : flow.type==='fuel' ? -1 : (i%2===0 ? 0.6 : -0.6);
+      var bendAmt = 0.22*bendDir;
+      var cx=(x1+x2)/2 - dy*bendAmt, cy=(y1+y2)/2 + dx*bendAmt;
+      var d='M'+x1+','+y1+' Q'+cx+','+cy+' '+x2+','+y2;
+      var lw=1.2+flow.vol*0.45, col=MCOLORS[flow.type];
+      var dash=flow.dir==='import' ? (lw*4)+','+(lw*2.5) : null;
+      var mid='marr-'+i;
+      var mk=mDefs.append('marker').attr('class','m-flow-marker').attr('id',mid)
+        .attr('markerWidth',7).attr('markerHeight',7).attr('refX',4).attr('refY',3.5).attr('orient','auto');
+      mk.append('polygon').attr('points','0,0 7,3.5 0,7').attr('fill',col).attr('opacity',0.85);
+      mFlowLayer.append('path').attr('d',d).attr('stroke',col).attr('stroke-width',lw+5).attr('opacity',0.07).attr('fill','none').attr('stroke-linecap','round').attr('stroke-dasharray',dash);
+      mFlowLayer.append('path').datum(flow).attr('class','m-flow-path').attr('d',d).attr('stroke',col)
+        .attr('stroke-width',lw).attr('opacity',0.72).attr('stroke-dasharray',dash).attr('marker-end','url(#'+mid+')')
+        .on('mouseover',function(ev,fl){ d3.select(this).attr('opacity',1).attr('stroke-width',lw+1.5); mShowTooltip(ev,fl); })
+        .on('mousemove',mMoveTooltip)
+        .on('mouseout',function(){ d3.select(this).attr('opacity',0.72).attr('stroke-width',lw); mHideTooltip(); });
+    });
+  }
+
+  function mDrawNodes() {
+    mNodeLayer.selectAll('*').remove();
+    var usedKeys = new Set();
+    var visFlows = mActiveFilter==='all' ? FLOWS : FLOWS.filter(function(f){return f.type===mActiveFilter;});
+    visFlows.forEach(function(f){usedKeys.add(f.from);usedKeys.add(f.to);});
+    var domesticByType = {fertiliser:['phosphate_hill','csbp_kwinana','karratha_ceres'],fuel:['lytton','geelong_ref'],gas:['nw_shelf','cooper_basin','qld_csg','bass_strait']};
+    var typesToShow = mActiveFilter==='all' ? Object.keys(domesticByType) : [mActiveFilter];
+    typesToShow.forEach(function(t){(domesticByType[t]||[]).forEach(function(k){usedKeys.add(k);});});
+    Object.entries(LOCATIONS).forEach(function([key,loc]){
+      if(!usedKeys.has(key)) return;
+      var pt=mProject(key); if(!pt) return;
+      var x=pt[0],y=pt[1], isAus=key==='australia', isDom=!!loc.domestic, isFut=!!loc.future, r=isAus?11:5;
+      var g=mNodeLayer.append('g').attr('transform','translate('+x+','+y+')');
+      if(isAus){
+        g.append('circle').attr('r',28).attr('fill','#4499ff').attr('opacity',0.07).attr('class','m-node-pulse');
+        g.append('circle').attr('r',18).attr('fill','#4499ff').attr('opacity',0.12);
+      }
+      if(isDom){
+        var ctype=loc.commodityType||'fertiliser', col=MCOLORS[ctype], isDecl=!!loc.declining, s=(isFut||isDecl)?6:7;
+        g.append('rect').attr('x',-s).attr('y',-s).attr('width',s*2).attr('height',s*2).attr('transform','rotate(45)')
+          .attr('fill',isFut?'transparent':isDecl?'transparent':col)
+          .attr('stroke',isFut?'#e8c040':col).attr('stroke-width',(isFut||isDecl)?1.5:1)
+          .attr('stroke-dasharray',(isFut||isDecl)?'3,2':null).attr('opacity',0.9);
+      } else {
+        var nodeTypes=[...new Set(visFlows.filter(function(f){return f.from===key||f.to===key;}).map(function(f){return f.type;}))];
+        nodeTypes.forEach(function(t,ti){
+          var angle=(ti/nodeTypes.length)*Math.PI*2 - Math.PI/2, rr=isAus?17:r+6;
+          g.append('circle').attr('cx',Math.cos(angle)*rr).attr('cy',Math.sin(angle)*rr).attr('r',3.5).attr('fill',MCOLORS[t]).attr('opacity',0.9);
+        });
+        g.append('circle').attr('r',r).attr('fill',isAus?'#2255bb':'#16254a').attr('stroke',isAus?'#77aaff':'#3a5488').attr('stroke-width',isAus?2:1).attr('opacity',1);
+      }
+      var off=loc.off||[0,14], ox=off[0], oy=off[1];
+      var labelLines=loc.label.split('\n');
+      var domCol=isDom?(isFut?'#e8c878':loc.declining?'#8899aa':{gas:'#ffb840',fuel:'#60ccff',fertiliser:'#b0d870'}[loc.commodityType]||'#b0d870'):null;
+      var labelColor=isDom?domCol:(isAus?'#aaccff':'#b0c8e8');
+      var txt=g.append('text').attr('class','m-node-label').attr('x',ox).attr('y',oy+(isDom?8:r))
+        .attr('text-anchor',ox<0?'end':ox>0?'start':'middle').attr('fill',labelColor);
+      labelLines.forEach(function(line,li){txt.append('tspan').attr('x',ox).attr('dy',li===0?0:'1.1em').text(line);});
+    });
+  }
+
+  function mUpdateStats() {
+    var bar=document.getElementById('map-stats-bar'); if(!bar) return;
+    var gasExp=FLOWS.filter(function(f){return f.type==='gas'&&f.dir==='export';}).length;
+    var fuelImp=FLOWS.filter(function(f){return f.type==='fuel'&&f.dir==='import';}).length;
+    var fertImp=FLOWS.filter(function(f){return f.type==='fertiliser'&&f.dir==='import';}).length;
+    bar.innerHTML='<div class="m-stat-pill"><div class="m-stat-dot" style="background:'+MCOLORS.gas+'"></div>Gas: <strong style="color:#ffc060">'+gasExp+' LNG export routes · 100% domestic production</strong></div>'
+      +'<div class="m-stat-pill"><div class="m-stat-dot" style="background:'+MCOLORS.fuel+'"></div>Fuel: <strong style="color:#60d0ff">'+fuelImp+' import sources · ~82% of refined fuel imported</strong></div>'
+      +'<div class="m-stat-pill"><div class="m-stat-dot" style="background:'+MCOLORS.fertiliser+'"></div>Fertiliser: <strong style="color:#90e090">'+fertImp+' import sources · ~50% of needs imported</strong></div>';
+    mUpdatePanels();
+  }
+
+  function mUpdatePanels() {
+    var panel=document.getElementById('map-domestic-panel'); if(!panel) return;
+    var types=mActiveFilter==='all'?['gas','fuel','fertiliser']:[mActiveFilter];
+    var html='';
+    types.forEach(function(type){
+      var d=PANEL_DATA[type], borderTop=html?'border-top:1px solid '+d.borderColor+';margin-top:8px;padding-top:8px;':'';
+      html+='<div style="'+borderTop+'"><h3 style="color:'+d.titleColor+'">'+d.icon+' '+type.charAt(0).toUpperCase()+type.slice(1)+' — Domestic</h3>';
+      d.domestic.forEach(function(site){
+        var col=site.declining?'#556677':(site.future?'#e8c878':d.titleColor);
+        var dash=(site.future||site.declining)?'border:1px dashed '+(site.declining?'#445566':'#e8c040')+';background:transparent;':'background:'+d.accentColor+';';
+        html+='<div class="m-dp-row"><div class="m-dp-diamond" style="'+dash+'"></div><div><div class="m-dp-name" style="color:'+col+'">'+site.label+(site.future?' ⚙':site.declining?' ✕':'')+'</div><div class="m-dp-sub">'+site.sub+'</div></div></div>';
+      });
+      html+='<div class="m-dp-note" style="border-top:1px solid '+d.borderColor+';color:#4a6050">'+d.note+'</div></div>';
+    });
+    panel.innerHTML=html;
+    panel.style.borderColor=mActiveFilter==='all'?'#1a2a40':PANEL_DATA[mActiveFilter].borderColor;
+
+    var depPanel=document.getElementById('map-dep-panel'); if(!depPanel) return;
+    if(mActiveFilter==='all'){depPanel.classList.remove('visible');return;}
+    var dd=PANEL_DATA[mActiveFilter];
+    depPanel.style.borderColor=dd.borderColor;
+    var dhtml='<h3 style="color:'+dd.titleColor+'">'+dd.icon+' Import Dependency</h3>';
+    dd.depRows.forEach(function(row){
+      dhtml+='<div class="m-dep-row"><span class="m-dep-label">'+row.label+'</span><div class="m-dep-bar-wrap"><div class="m-dep-bar" style="width:'+row.pct+'%;background:'+row.barColor+'"></div></div><span class="m-dep-pct" style="color:'+dd.titleColor+'">'+(row.pct===0?'0%':'~'+row.pct+'%')+'</span></div>';
+    });
+    dhtml+='<div style="margin-top:6px;font-size:10px;color:#4a6050">'+dd.depNote+'</div>';
+    depPanel.innerHTML=dhtml;
+    depPanel.classList.add('visible');
+  }
+
+  var mTooltip=document.getElementById('map-tooltip');
+  function mShowTooltip(ev,flow){
+    var fromName=LOCATIONS[flow.from].label.replace('\n',' '), toName=LOCATIONS[flow.to].label.replace('\n',' ');
+    var badge=flow.dir==='export'?'<span class="m-dir-badge m-export-badge">EXPORT</span>':'<span class="m-dir-badge m-import-badge">IMPORT</span>';
+    mTooltip.innerHTML='<div class="mtt-title">'+flow.label+' '+badge+'</div><div class="mtt-route">'+fromName+' &nbsp;→&nbsp; '+toName+'</div><div class="mtt-commodity" style="color:'+MCOLORS[flow.type]+'">'+flow.type.toUpperCase()+'</div><div class="mtt-detail">'+flow.detail.replace(/\n/g,'<br>')+'</div>';
+    mTooltip.style.opacity='1';
+    mMoveTooltip(ev);
+  }
+  function mMoveTooltip(ev){
+    var rect=mWrapper.getBoundingClientRect();
+    var tx=ev.clientX-rect.left+16, ty=ev.clientY-rect.top-12;
+    if(tx+230>mW) tx-=240;
+    if(ty+130>mH) ty-=150;
+    mTooltip.style.left=tx+'px'; mTooltip.style.top=ty+'px';
+  }
+  function mHideTooltip(){mTooltip.style.opacity='0';}
+
+  document.querySelectorAll('.m-filter-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.m-filter-btn').forEach(function(b){b.classList.remove('active');});
+      this.classList.add('active');
+      mActiveFilter=this.dataset.type;
+      mRender(); mUpdateStats();
+    });
+  });
+
+  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+    .then(function(r){return r.json();})
+    .then(function(world){
+      var el=document.getElementById('map-loading'); if(el) el.remove();
+      var countries=topojson.feature(world,world.objects.countries);
+      mCountryLayer.selectAll('path').data(countries.features).join('path')
+        .attr('class',function(d){var id=+d.id;if(id===36) return 'm-country m-australia';if(HIGHLIGHT_IDS.has(id)) return 'm-country m-highlight';return 'm-country';})
+        .attr('d',mPathGen);
+      mRender(); mUpdateStats();
+    })
+    .catch(function(){
+      var el=document.getElementById('map-loading'); if(el) el.textContent='(Map unavailable — flows shown)';
+      mRender();
+    });
+
+  window.addEventListener('resize',function(){
+    if(!document.getElementById('tab-map').classList.contains('active')) return;
+    mW=mWrapper.clientWidth; mH=mWrapper.clientHeight;
+    mSvg.attr('width',mW).attr('height',mH);
+    mProjection.scale(Math.min(mW,mH)*0.21).translate([mW*0.52,mH*0.5]);
+    mRender();
+  });
+}
+
+// Patch switchTab to init map on first show
+var _origSwitchTab = switchTab;
+switchTab = function(name, el) {
+  _origSwitchTab(name, el);
+  if (name === 'map') {
+    // small delay so the tab is visible and has dimensions
+    setTimeout(initMap, 50);
+  }
+};
+</script>
+</body>
+</html>

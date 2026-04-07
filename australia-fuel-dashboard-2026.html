@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>澳洲燃油储备与油轮分析 — 2026年4月1日</title>
+  <title>澳洲燃油储备与油轮分析 — 2026年4月7日</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#0d1117;color:#e2e8f0;min-height:100vh}
+    html{scroll-behavior:smooth}
+    body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#0d1117;color:#e2e8f0;min-height:100vh;scroll-behavior:smooth}
 
     /* ---- Header ---- */
     header{background:linear-gradient(135deg,#1a1f2e,#16213e,#0f3460);padding:26px 36px 20px;border-bottom:1px solid #2d3748}
@@ -26,7 +27,7 @@
 
     /* ---- Ticker (scrolling news) ---- */
     .ticker{background:#13181f;border-bottom:1px solid #2d3748;padding:8px 0;overflow:hidden;white-space:nowrap}
-    .ticker-inner{display:inline-block;animation:scroll 35s linear infinite;padding-left:100%}
+    .ticker-inner{display:inline-block;animation:scroll 55s linear infinite;padding-left:100%}
     .ticker-inner span{margin:0 40px;font-size:.78rem;color:#94a3b8}
     .ticker-inner span strong{color:#f6c90e}
     @keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
@@ -210,38 +211,40 @@
 <header>
   <h1>🛢️ 澳洲燃油储备与油轮到港综合分析</h1>
   <div class="header-meta">
-    <span class="meta-pill live"><span class="dot"></span>报告日期：2026年4月1日（今日）</span>
-    <span class="meta-pill">📊 数据覆盖：Q1 2026（1月–3月）</span>
+    <span class="meta-pill live"><span class="dot"></span>报告日期：2026年4月7日（今日）</span>
+    <span class="meta-pill">📊 数据覆盖：Q1 2026（1月–3月）+ 4月实时</span>
     <span class="meta-pill">🗂️ 数据来源：DCCEEW · Vortexa · Argus Media · SBS · PM.gov.au · Al Jazeera · IEA · EIA</span>
   </div>
 </header>
 
 <!-- ===================== ALERT BARS ===================== -->
 <div class="alert-red">
-  <span>🚨</span>
-  <strong>危机仍在持续：</strong>457个加油站柴油告罄，125个汽油告罄（截至3月31日）｜ 457 diesel stations & 125 petrol stations ran dry nationally as of March 31
+  <span>📉</span>
+  <strong>首次价格下跌（Bloomberg 4月7日）：</strong>汽油均价降至约 <strong>$2.40/升</strong>，自2月初以来首次回落 ｜ 断货站减至约 <strong>400站</strong>（峰值608站）｜ 柴油$3.13/升，仍为2006年以来最高
 </div>
 <div class="alert-green">
-  <span>✅</span>
-  <strong>今日重大政策（4月1日生效）：</strong>燃油消费税减半（52.6¢ → 26.3¢/升），有效期至6月30日 ｜ 国家燃油安全计划（National Fuel Security Plan）已于3月30日由国家内阁批准
+  <span>🚢</span>
+  <strong>供应侧重大进展（4月7日）：</strong>政府确认 <strong>53艘油轮</strong> 携 <strong>37亿升</strong> 燃油正在途中，4月内陆续抵港 ｜ 战略储备已释放 <strong>7.62亿升</strong>（MSO下调20%，3月13日起）｜ 但业界警告：亚洲炼厂库存不足，4月下旬或现供应缺口
 </div>
 
 <!-- ===================== TICKER ===================== -->
 <div class="ticker">
   <div class="ticker-inner">
-    <span>🟡 <strong>汽油均价</strong>$2.53/升（3月27日周均，首府城市）→ 消费税减半后预计约$2.27/升</span>
-    <span>🔵 <strong>柴油均价</strong>$3.03/升（全国）｜ 最高达$3.29/升（部分地区）</span>
-    <span>🛢️ <strong>国际原油价格</strong>$116+/桶（布伦特），霍尔木兹海峡持续紧张</span>
-    <span>✈️ <strong>航油供应</strong>交通部长表示"目前安全"，存量约30天 ｜ 中国已实施出口禁令</span>
-    <span>🚢 <strong>4月补货</strong>6艘取消 已被9艘替代 净增3艘，来自印度·马来西亚·新加坡·韩国</span>
-    <span>⚖️ <strong>国家燃油安全计划</strong>4级响应框架，3月30日国家内阁批准 ｜ $25.5亿应急方案</span>
-    <span>🇰🇷 <strong>韩国</strong>已对4月出货实施出口管制 ｜ 🇨🇳 <strong>中国</strong>宣布近期成品油出口禁令</span>
+    <span>📉 <strong>汽油价格4月7日首次下跌</strong>（Bloomberg）｜ 均价$2.40/升，自2月初以来首次回落</span>
+    <span>🚢 <strong>53艘油轮在途</strong>携37亿升燃油，4月内陆续抵港（政府4月4日确认）</span>
+    <span>🔵 <strong>柴油$3.13/升</strong>（2006年以来新高）｜ 重型车路费已归零（至6月30日）</span>
+    <span>📦 <strong>战略储备释放7.62亿升</strong>（MSO下调20%，3月13日起，重点补充区域市场）</span>
+    <span>⚠️ <strong>业界警告</strong>：亚洲炼厂库存偏低，4月下旬或现供应"悬崖"，政府表示乐观</span>
+    <span>🟡 <strong>汽油库存</strong>约39天（4月4日）｜ 柴油29天 ｜ 航油30天 — 仍远低于IEA 90天标准</span>
+    <span>⛽ <strong>断货加油站</strong>从峰值608站降至约400站（4月初改善）</span>
+    <span>🛢️ <strong>国际原油（布伦特）</strong>$116+/桶 ｜ 霍尔木兹海峡持续封锁 ｜ 亚洲炼厂原料来源受限</span>
+    <span>🔧 <strong>燃油品质临时放宽</strong>50ppm硫含量（原10ppm），额外+1亿升/月，有效至5月31日</span>
   </div>
 </div>
 
 <!-- ===================== NAV TABS ===================== -->
 <div class="nav-tabs">
-  <div class="nav-tab active" onclick="switchTab('today',this)">🔴 今日动态（4/1）</div>
+  <div class="nav-tab active" onclick="switchTab('today',this)">🔴 今日动态（4/7）</div>
   <div class="nav-tab" onclick="switchTab('overview',this)">📊 库存仪表板</div>
   <div class="nav-tab" onclick="switchTab('quarterly',this)">📅 Q1月度对比</div>
   <div class="nav-tab" onclick="switchTab('tankers',this)">🚢 油轮追踪</div>
@@ -254,42 +257,51 @@
 <div id="tab-today" class="tab-section active">
 <div class="container">
 
-  <div class="sec-title"><span>🔴</span> 今日（2026年4月1日）最新动态</div>
+  <div class="sec-title"><span>🔴</span> 今日（2026年4月7日）最新动态</div>
 
   <!-- Price row -->
   <div class="price-row">
     <div class="price-pill p-petrol">
-      <div class="p-label">汽油均价（3月27日）→ 减税后预估</div>
-      <div class="p-val">$2.27<span style="font-size:.75rem;color:#94a3b8">/升</span></div>
-      <div style="font-size:.68rem;color:#64748b;margin-top:2px">原$2.53 → 减半消费税 −26.3¢</div>
+      <div class="p-label">汽油均价（4月7日，首次下跌）</div>
+      <div class="p-val">$2.40<span style="font-size:.75rem;color:#94a3b8">/升</span></div>
+      <div style="font-size:.68rem;color:#64748b;margin-top:2px">较3月31日↓16.7¢ ｜ 自2月初来首次回落（Bloomberg）</div>
     </div>
     <div class="price-pill p-diesel">
-      <div class="p-label">柴油均价（全国，3月27日）</div>
-      <div class="p-val">$3.03<span style="font-size:.75rem;color:#94a3b8">/升</span></div>
-      <div style="font-size:.68rem;color:#64748b;margin-top:2px">部分地区高达 $3.29/升</div>
+      <div class="p-label">柴油均价（全国，2006年来最高）</div>
+      <div class="p-val">$3.13<span style="font-size:.75rem;color:#94a3b8">/升</span></div>
+      <div style="font-size:.68rem;color:#64748b;margin-top:2px">重型车路费归零（至6月30日）｜ 实际↓15¢/升</div>
     </div>
     <div class="price-pill p-crude">
       <div class="p-label">国际原油（布伦特）</div>
       <div class="p-val">$116<span style="font-size:.75rem;color:#94a3b8">/桶</span></div>
-      <div style="font-size:.68rem;color:#64748b;margin-top:2px">霍尔木兹海峡封锁驱动</div>
+      <div style="font-size:.68rem;color:#64748b;margin-top:2px">霍尔木兹海峡封锁持续</div>
     </div>
-    <div class="price-pill" style="border-color:#7c3aed">
-      <div class="p-label">加油站断货（3月31日）</div>
-      <div class="p-val" style="color:#c084fc">582<span style="font-size:.75rem;color:#94a3b8">站</span></div>
-      <div style="font-size:.68rem;color:#64748b;margin-top:2px">457柴油 + 125汽油 = 全国断货</div>
+    <div class="price-pill" style="border-color:#10b981">
+      <div class="p-label">断货加油站（4月初改善中）</div>
+      <div class="p-val" style="color:#34d399">~400<span style="font-size:.75rem;color:#94a3b8">站</span></div>
+      <div style="font-size:.68rem;color:#64748b;margin-top:2px">峰值608站 → 约400站（仍主要在NSW/QLD）</div>
     </div>
   </div>
 
   <div class="two-col">
     <div>
       <div class="success-box">
-        <h4>✅ 今日重大政策：燃油消费税减半（4月1日起）</h4>
+        <h4>✅ 价格开始下跌（4月7日 Bloomberg确认）</h4>
         <ul>
-          <li>消费税：52.6¢/升 → <strong>26.3¢/升</strong>（减少26.3¢）</li>
-          <li>有效期：<strong>2026年4月1日 — 6月30日</strong>（三个月）</li>
-          <li>预计节省：每次加油（65升）省约 <strong>$17.10 AUD</strong></li>
-          <li>政策成本：纳税人约 <strong>$25.5亿 AUD</strong>（含配套应急方案）</li>
-          <li>来源：总理Albanese 3月30日宣布 [来源⑤]</li>
+          <li>汽油均价降至 <strong>$2.40/升</strong>，较3月31日下跌16.7¢ — 自2月初来首次下跌</li>
+          <li>柴油日均零售价4月1日同日降15.0¢/升，但月度仍升至 <strong>$3.13/升</strong>（2006年新高）</li>
+          <li>消费税减半（26.3¢/升）已全面传导到泵价，有效至6月30日</li>
+          <li>重型车（>4.5t）柴油路费归零（原32.4¢/升），至6月30日</li>
+          <li>来源：Bloomberg 4月7日 [来源⑤⑨]</li>
+        </ul>
+      </div>
+      <div class="success-box">
+        <h4>✅ 燃油品质标准临时放宽（3月起）</h4>
+        <ul>
+          <li>硫含量上限：10ppm → <strong>50ppm</strong>，有效至2026年5月31日</li>
+          <li>柴油闪点：降至60.5°C，有效至2026年9月30日</li>
+          <li>效果：每月额外释放约 <strong>1亿升</strong> 燃油进入市场</li>
+          <li>来源：Bowen部长3月12日宣布 [来源⑭]</li>
         </ul>
       </div>
       <div class="success-box">
@@ -305,23 +317,23 @@
     </div>
     <div>
       <div class="danger-box">
-        <h4>🚨 新风险：中国 + 韩国出口管制（4月生效）</h4>
+        <h4>🚨 业界警告：4月下旬或现供应"悬崖"</h4>
         <ul>
-          <li>🇨🇳 <strong>中国</strong>：宣布近期成品油出口禁令（影响约 28% 澳洲航油进口）</li>
-          <li>🇰🇷 <strong>韩国</strong>：对4月出货实施出口管制</li>
-          <li>澳洲将需要替代28%的航油来源，替代地：印度、马来西亚</li>
-          <li>印度可能将原本发欧洲的货转向澳洲（俄罗斯原油提炼）</li>
-          <li>来源：CrudeOilPeak、Argus Media [来源⑪⑫]</li>
+          <li>政府称53艘油轮将在4月内陆续抵港，但行业分析师持保守态度</li>
+          <li>亚洲炼厂原料库存持续偏低，部分4月下旬批次可能延误</li>
+          <li>🇨🇳 <strong>中国</strong>出口禁令影响约28%澳洲航油来源，印度已部分填补缺口</li>
+          <li>🇰🇷 <strong>韩国</strong>出口管制目前已落实4月批次，但5月以后不确定性上升</li>
+          <li>来源：ABC News、ainvest、Argus Media [来源⑪⑫]</li>
         </ul>
       </div>
       <div class="warn-box">
-        <h4>⚠️ 本地断货情况（3月31日）</h4>
+        <h4>⚠️ 断货情况（4月初改善但仍持续）</h4>
         <ul>
-          <li>全国 <strong>457个加油站</strong> 柴油告罄</li>
-          <li>全国 <strong>125个加油站</strong> 无铅汽油告罄</li>
-          <li>达尔文最高均价 $2.57/升（汽油）</li>
-          <li>珀斯四周涨幅最大：+92.2¢/升</li>
-          <li>来源：ACCC、CarExpert [来源⑧⑨]</li>
+          <li>全国约 <strong>400站</strong> 断货（较峰值608站有所改善）</li>
+          <li>柴油断货：峰值约410站 → 目前约312站（主要在NSW约150-182站）</li>
+          <li>农村地区受影响最重：农民反映冬季播种、收割、牲畜运输用油告急</li>
+          <li>政府称恐慌性抢购为主要推手，但供应端延迟交货也是因素</li>
+          <li>来源：ABC News、FuelRadar、The Nightly [来源⑧⑨]</li>
         </ul>
       </div>
     </div>
@@ -355,8 +367,16 @@
               <strong style="color:#f59e0b">3月30日</strong><br/>国家安全计划<br/>$25.5亿
             </div>
             <div style="flex:1;border-top:2px solid #10b981;position:relative;padding-top:18px;text-align:center;font-size:.68rem;color:#64748b">
-              <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#10b981;border:2px solid #0d1117;animation:pulse 1.5s infinite"></div>
-              <strong style="color:#10b981">4月1日 今</strong><br/>消费税减半<br/>生效
+              <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#10b981;border:2px solid #0d1117"></div>
+              <strong style="color:#10b981">4月1日</strong><br/>消费税减半<br/>608站断货
+            </div>
+            <div style="flex:1;border-top:2px solid #60a5fa;position:relative;padding-top:18px;text-align:center;font-size:.68rem;color:#64748b">
+              <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#60a5fa;border:2px solid #0d1117"></div>
+              <strong style="color:#60a5fa">4月2-6日</strong><br/>传导到位<br/>站数改善
+            </div>
+            <div style="flex:1;border-top:2px solid #34d399;position:relative;padding-top:18px;text-align:center;font-size:.68rem;color:#64748b">
+              <div style="position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:#34d399;border:2px solid #0d1117;animation:pulse 1.5s infinite"></div>
+              <strong style="color:#34d399">4月7日 今</strong><br/>价格首跌<br/>53艘在途
             </div>
           </div>
         </div>
@@ -386,14 +406,14 @@
     <div class="kpi-card petrol">
       <div class="kpi-label">汽油库存天数</div>
       <div class="kpi-value">39<span style="font-size:.85rem">天</span></div>
-      <div class="kpi-sub">截至 3月21日（官方最新）</div>
+      <div class="kpi-sub">截至 4月4日（官方最新）</div>
       <span class="badge b-ok">✓ 超MSO +44%</span>
     </div>
     <div class="kpi-card diesel">
       <div class="kpi-label">柴油库存天数</div>
-      <div class="kpi-value">30<span style="font-size:.85rem">天</span></div>
-      <div class="kpi-sub">截至 3月21日 ｜ 陆地≈20天</div>
-      <span class="badge b-warn">✗ 低于MSO −6%</span>
+      <div class="kpi-value">29<span style="font-size:.85rem">天</span></div>
+      <div class="kpi-sub">截至 4月4日 ｜ 陆地≈20天</div>
+      <span class="badge b-warn">✗ 低于MSO −9%</span>
     </div>
     <div class="kpi-card jet">
       <div class="kpi-label">航空燃油库存天数</div>
@@ -402,21 +422,21 @@
       <span class="badge b-ok">✓ 超MSO +11%</span>
     </div>
     <div class="kpi-card tanker">
-      <div class="kpi-label">当前在途油轮</div>
-      <div class="kpi-value">33<span style="font-size:.85rem">艘</span></div>
-      <div class="kpi-sub">+ 4月额外净增3艘（替代方案）</div>
-      <span class="badge b-info">上周 18艘 已到港</span>
+      <div class="kpi-label">4月在途油轮（政府确认）</div>
+      <div class="kpi-value">53<span style="font-size:.85rem">艘</span></div>
+      <div class="kpi-sub">携37亿升燃油，4月内陆续抵港</div>
+      <span class="badge b-info">业界谨慎乐观</span>
     </div>
-    <div class="kpi-card warn">
-      <div class="kpi-label">全国断货加油站</div>
-      <div class="kpi-value">582<span style="font-size:.85rem">站</span></div>
-      <div class="kpi-sub">柴油457 + 汽油125（3月31日）</div>
-      <span class="badge b-warn">局部短缺</span>
+    <div class="kpi-card tanker" style="--c:#f59e0b">
+      <div class="kpi-label">全国断货加油站（改善中）</div>
+      <div class="kpi-value" style="color:#f59e0b">~400<span style="font-size:.85rem">站</span></div>
+      <div class="kpi-sub">峰值608站 → 约400站（NSW/QLD为主）</div>
+      <span class="badge b-est">较峰值↓34%</span>
     </div>
     <div class="kpi-card gold">
-      <div class="kpi-label">4月净增油轮</div>
-      <div class="kpi-value">+3<span style="font-size:.85rem">艘</span></div>
-      <div class="kpi-sub">6取消 + 9新增 = 净增3</div>
+      <div class="kpi-label">战略储备已释放</div>
+      <div class="kpi-value">7.62<span style="font-size:.85rem">亿升</span></div>
+      <div class="kpi-sub">MSO下调20%，3月13日起，重点供给区域市场</div>
       <span class="badge b-new">✦ 今日更新</span>
     </div>
   </div>
@@ -538,72 +558,111 @@
 <div id="tab-tankers" class="tab-section">
 <div class="container">
 
-  <div class="sec-title"><span>🚢</span> 油轮动态（截至 2026年4月1日）</div>
+  <div class="sec-title"><span>🚢</span> 油轮动态（截至 2026年4月7日）</div>
 
   <div class="chart-grid">
     <div class="chart-card">
-      <h3>月均到港船次（按燃油类型，2025基准）</h3>
+      <h3>月均到港船次（按燃油类型，2025基准 vs 4月预测）</h3>
       <div class="chart-wrap"><canvas id="typeChart"></canvas></div>
     </div>
     <div class="chart-card">
-      <h3>进口来源国分布（2025年）</h3>
+      <h3>进口来源国分布（2025年基准 vs 2026年4月 转变）</h3>
       <div class="chart-wrap"><canvas id="sourceChart"></canvas></div>
     </div>
+  </div>
+
+  <!-- Key stats bar -->
+  <div class="tl" style="margin-bottom:16px">
+    <div class="tl-item c-g"><div class="tl-l">4月在途油轮</div><div class="tl-v">53艘</div><div class="tl-n">政府4/4确认</div></div>
+    <div class="tl-item c-b"><div class="tl-l">4月总货量</div><div class="tl-v">37亿升</div><div class="tl-n">含替代批次</div></div>
+    <div class="tl-item c-y"><div class="tl-l">4月中-5月中预排</div><div class="tl-v">81艘</div><div class="tl-n">6艘取消/延迟</div></div>
+    <div class="tl-item c-r"><div class="tl-l">柴油到港 3月 vs 1月</div><div class="tl-v">−147万桶</div><div class="tl-n">⚠️ 4月更低</div></div>
+    <div class="tl-item c-p"><div class="tl-l">新货源（欧美）</div><div class="tl-v">首次启用</div><div class="tl-n">亚洲供应紧缺</div></div>
   </div>
 
   <div class="tbl-wrap" style="margin-bottom:16px">
     <table>
       <thead>
-        <tr><th>状态</th><th>批次</th><th>数量</th><th>目的港</th><th>燃油类型</th><th>来源国</th><th>估计货量</th><th>可补充天数</th><th>来源</th></tr>
+        <tr><th>状态</th><th>批次</th><th>数量</th><th>目的港</th><th>燃油类型</th><th>来源地</th><th>估计货量</th><th>可补充天数</th><th>来源</th></tr>
       </thead>
       <tbody>
         <tr>
           <td><span class="tag t-ok">✅ 已到港</span></td>
-          <td>3月第3-4周</td><td><strong>18艘</strong></td>
+          <td>3月末–4月初</td><td><strong>~20艘</strong></td>
           <td>悉尼·墨尔本·布里斯班·珀斯</td>
-          <td><span class="dot" style="background:#f59e0b"></span>汽油<span class="dot" style="background:#3b82f6;margin-left:6px"></span>柴油</td>
-          <td>新加坡·韩国·中国</td><td>约9亿升</td><td>汽油~5天/柴油~2.3天</td><td>[③④]</td>
+          <td><span class="dot" style="background:#f59e0b"></span>汽油<span class="dot" style="background:#3b82f6;margin-left:6px"></span>柴油<span class="dot" style="background:#8b5cf6;margin-left:6px"></span>航油</td>
+          <td>印度·马来西亚·新加坡·韩国·中国</td><td>约10亿升</td><td>综合~5-6天</td><td>[③④⑥]</td>
         </tr>
-        <tr>
-          <td><span class="tag t-go">🔵 在途</span></td>
-          <td>3月底–4月中</td><td><strong>33艘</strong></td>
+        <tr style="background:#051a0a">
+          <td><span class="tag t-go">🔵 在途（确认）</span></td>
+          <td>4月7-20日到港</td><td><strong>53艘</strong></td>
           <td>各主要港口</td>
           <td><span class="dot" style="background:#f59e0b"></span>汽油<span class="dot" style="background:#3b82f6;margin-left:6px"></span>柴油<span class="dot" style="background:#8b5cf6;margin-left:6px"></span>航油</td>
-          <td>印度·马来西亚·新加坡·韩国</td><td>约16.5亿升</td><td>综合~10-11天</td><td>[④⑥]</td>
-        </tr>
-        <tr style="background:#0d1f0f">
-          <td><span class="tag t-ok">✅ 新增替代</span></td>
-          <td>4月（新）</td><td><strong>9艘</strong></td>
-          <td>悉尼·墨尔本</td>
-          <td><span class="dot" style="background:#f59e0b"></span>汽油<span class="dot" style="background:#3b82f6;margin-left:6px"></span>柴油</td>
-          <td>印度·马来西亚·其他</td><td>约4.5亿升</td><td>约2.5天</td><td>[⑥⑦]</td>
-        </tr>
-        <tr>
-          <td><span class="tag t-no">❌ 取消</span></td>
-          <td>4月中–5月中</td><td><strong>6艘</strong></td>
-          <td>—</td><td>混合</td>
-          <td>原马来西亚·新加坡·韩国</td><td>约3亿升</td><td>—</td><td>[③⑩]</td>
+          <td>印度·马来西亚·新加坡·韩国</td><td>37亿升（政府确认）</td><td>综合约21天</td><td>[㉒]</td>
         </tr>
         <tr style="background:#1a1000">
-          <td><span class="tag t-wd" style="background:#1a1000;color:#fbbf24">🆕 首批美国货</span></td>
-          <td>4月（首次）</td><td><strong>1艘</strong></td>
-          <td>澳洲东岸</td>
-          <td><span class="dot" style="background:#f59e0b"></span>汽油</td>
-          <td>美国墨西哥湾（ExxonMobil）</td><td>约4,000万升</td><td>约~1天</td><td>[⑬]</td>
+          <td><span class="tag t-wd" style="background:#2a1800;color:#fbbf24">🆕 美国货（首次）</span></td>
+          <td>4月–5月（多批）</td><td><strong>多艘</strong></td>
+          <td>悉尼博特尼湾（主）</td>
+          <td><span class="dot" style="background:#3b82f6"></span>柴油<span class="dot" style="background:#f59e0b;margin-left:6px"></span>汽油</td>
+          <td>美国墨西哥湾 + 西海岸（ExxonMobil等）</td><td>STI Solace：707,100桶（5月初）</td><td>约8天柴油</td><td>[⑬㉒]</td>
+        </tr>
+        <tr style="background:#0a0a1a">
+          <td><span class="tag" style="background:#1a1a40;color:#93c5fd">🇪🇺 欧洲货（新）</span></td>
+          <td>4月–5月</td><td><strong>若干艘</strong></td>
+          <td>东岸港口</td>
+          <td><span class="dot" style="background:#3b82f6"></span>柴油<span class="dot" style="background:#f59e0b;margin-left:6px"></span>汽油</td>
+          <td>欧洲（Argus Media确认）</td><td>估算约2-4亿升</td><td>约2-4天</td><td>[㉒]</td>
+        </tr>
+        <tr>
+          <td><span class="tag t-no">❌ 取消/延迟</span></td>
+          <td>4月中–5月中</td><td><strong>6艘</strong></td>
+          <td>—</td><td>混合</td>
+          <td>原马来西亚·新加坡·韩国</td><td>约3亿升（缺口）</td><td>—</td><td>[①㉒]</td>
+        </tr>
+        <tr style="background:#0d1117;border-top:1px solid #2d3748">
+          <td><span class="tag" style="background:#2d1f00;color:#fcd34d">⚠️ 风险：4月下旬</span></td>
+          <td>4月下旬–5月</td><td><strong>81艘预排</strong></td>
+          <td>—</td><td>混合</td>
+          <td>亚洲炼厂（库存偏低）</td><td>视炼厂恢复情况</td><td>⚠️ 业界警告延误风险</td><td>[㉒]</td>
         </tr>
       </tbody>
     </table>
+    <p class="est">* 来源：Argus Media（亚洲燃油紧缺推动澳洲转向美国+欧洲货源）｜ ABC News（4月4日政府声明）｜ Baird Maritime（ExxonMobil首批美湾货）｜ ainvest（53艘在途）[来源⑬㉒㉓]</p>
+  </div>
+
+  <!-- Argus key finding box -->
+  <div class="danger-box" style="margin-bottom:16px">
+    <h4>🚨 Argus Media 独家：亚洲燃油紧缺推澳洲转向美国+欧洲（4月7日）</h4>
+    <ul>
+      <li>3月柴油(gasoil)到港量比1月 <strong>减少约147万桶</strong>（约2.34亿升）</li>
+      <li>汽油到港量↓25万桶、航油↓185万桶（3月 vs 1月）</li>
+      <li><strong>4月预计更低</strong>，尤其柴油，亚洲炼厂产量仍受限</li>
+      <li>应对措施：从 <strong>美国墨西哥湾、美西海岸、欧洲</strong> 进口，但航程更长（约3-5周 vs 亚洲1-2周）</li>
+      <li>具体船只：<strong>STI Solace</strong>（LR2型）— 707,100桶柴油，经船对船转运，5月初抵悉尼博特尼湾</li>
+    </ul>
+  </div>
+
+  <!-- Easter warning -->
+  <div class="warn-box" style="margin-bottom:16px">
+    <h4>🐣 复活节（4月18-21日）警告 — 政府要求民众正常出行</h4>
+    <ul>
+      <li>政府明确表示：<strong>"按原计划出行"</strong>，不应取消复活节旅行</li>
+      <li>但旅行和旅游媒体记录大量取消案例，尤其是前往偏远内陆和农村地区</li>
+      <li>建议：出发前查 FuelRadar 确认沿途加油站库存 ｜ 农村断货风险仍高</li>
+      <li>53艘在途油轮若按计划抵港，4月中旬起供应将逐步改善</li>
+    </ul>
   </div>
 
   <!-- Supply timeline -->
-  <div class="sec-title"><span>⏱️</span> 当前库存 + 在途船只可撑多久？</div>
+  <div class="sec-title"><span>⏱️</span> 当前库存 + 在途船只可撑多久？（4月4日更新）</div>
   <div class="tl">
     <div class="tl-item c-y"><div class="tl-l">汽油陆地库存</div><div class="tl-v">~28天</div><div class="tl-n">不含海上</div></div>
-    <div class="tl-item c-g"><div class="tl-l">汽油+在途</div><div class="tl-v">39天</div><div class="tl-n">官方数字</div></div>
-    <div class="tl-item c-r"><div class="tl-l">柴油陆地库存</div><div class="tl-v">~20天</div><div class="tl-n">⚠️ 低于MSO</div></div>
-    <div class="tl-item c-b"><div class="tl-l">柴油+在途</div><div class="tl-v">30天</div><div class="tl-n">官方数字</div></div>
+    <div class="tl-item c-g"><div class="tl-l">汽油+在途</div><div class="tl-v">39天</div><div class="tl-n">4月4日官方</div></div>
+    <div class="tl-item c-r"><div class="tl-l">柴油陆地库存</div><div class="tl-v">~19天</div><div class="tl-n">⚠️ 较上周降</div></div>
+    <div class="tl-item c-b"><div class="tl-l">柴油+在途</div><div class="tl-v">29天</div><div class="tl-n">4月4日官方</div></div>
     <div class="tl-item c-y"><div class="tl-l">航油陆地库存</div><div class="tl-v">~22天</div><div class="tl-n">不含海上</div></div>
-    <div class="tl-item c-p"><div class="tl-l">航油+在途</div><div class="tl-v">30天</div><div class="tl-n">部长确认</div></div>
+    <div class="tl-item c-p"><div class="tl-l">航油+在途</div><div class="tl-v">30天</div><div class="tl-n">4月4日官方</div></div>
   </div>
 
   <div class="chart-grid">
@@ -619,6 +678,7 @@
       <li>🟡 汽油：270,000桶/天 ≈ 4,293万升/天 ｜ 1艘MR型油轮(5,000万升) = 补充约 <strong>1.2天</strong></li>
       <li>🔵 柴油：554,000桶/天 ≈ 8,809万升/天 ｜ 1艘MR型油轮(5,000万升) = 补充约 <strong>0.57天</strong></li>
       <li>🟣 航油：146,000桶/天 ≈ 2,321万升/天 ｜ 1艘MR型油轮(5,000万升) = 补充约 <strong>2.1天</strong></li>
+      <li>📦 STI Solace柴油货量：707,100桶 ≈ 1.124亿升 ≈ 补充约 <strong>1.3天</strong> 柴油</li>
     </ul>
   </div>
 
@@ -695,7 +755,7 @@
       <div class="src-item"><span class="src-num">⑥</span><div><a href="https://www.pmc.gov.au/resources/national-fuel-security-plan" target="_blank">National Fuel Security Plan — PM&C</a><div class="src-date">2026年3月30日｜4级响应框架·5月前供应落实</div></div></div>
       <div class="src-item"><span class="src-num">⑦</span><div><a href="https://www.smartcompany.com.au/business-advice/politics/fuel-crisis-australia-work-from-home-excise-national-cabinet/" target="_blank">Fuel excise cut + $2.55bn plan — Smart Company</a><div class="src-date">2026年3月30日｜$25.5亿应急计划·居家办公建议</div></div></div>
       <div class="src-item"><span class="src-num">⑧</span><div><a href="https://www.carexpert.com.au/car-news/fuel-excise-cut-by-australian-government-as-petrol-and-diesel-prices-surge-amid-fuel-crisis" target="_blank">Fuel excise cut — CarExpert</a><div class="src-date">2026年3月｜汽油$2.53均价·达尔文$2.57·珀斯+92.2¢</div></div></div>
-      <div class="src-item"><span class="src-num">⑨</span><div><a href="https://www.carexpert.com.au/car-news/the-fuel-excise-has-been-cut-so-why-arent-petrol-and-diesel-prices-cheaper" target="_blank">Why aren't prices cheaper after excise cut? — CarExpert</a><div class="src-date">2026年4月1日｜断货站点457+125·价格传导分析</div></div></div>
+      <div class="src-item"><span class="src-num">⑨</span><div><a href="https://www.carexpert.com.au/car-news/the-fuel-excise-has-been-cut-so-why-arent-petrol-and-diesel-prices-cheaper" target="_blank">Why aren't prices cheaper after excise cut? — CarExpert</a><div class="src-date">2026年4月1-2日｜断货608站·价格传导延迟2-3天分析</div></div></div>
       <div class="src-item"><span class="src-num">⑩</span><div><a href="https://www.aljazeera.com/news/2026/3/30/australia-to-halve-fuel-tax-as-global-energy-crisis-deepens" target="_blank">Australia to halve fuel tax — Al Jazeera</a><div class="src-date">2026年3月30日｜原油$116/桶·霍尔木兹封锁背景</div></div></div>
       <div class="src-item"><span class="src-num">⑪</span><div><a href="https://theconversation.com/chinas-ban-on-fuel-exports-is-deeply-worrying-for-australian-air-travellers-278313" target="_blank">China's ban on fuel exports — The Conversation</a><div class="src-date">2026年3月｜中国出口禁令·影响28%航油进口</div></div></div>
       <div class="src-item"><span class="src-num">⑫</span><div><a href="https://www.loc.gov/item/global-legal-monitor/2026-03-30/australia-government-acts-to-protect-national-fuel-security-and-supply" target="_blank">Australia Government Acts on Fuel Security — Library of Congress</a><div class="src-date">2026年3月30日｜印度货源·韩国出口管制·新立法</div></div></div>
@@ -707,6 +767,10 @@
       <div class="src-item"><span class="src-num">⑱</span><div><a href="https://www.theglobaleconomy.com/Australia/diesel_fuel_consumption/" target="_blank">Australia Diesel Consumption — TheGlobalEconomy.com</a><div class="src-date">2023年｜柴油554,000桶/天；汽油270,000桶/天</div></div></div>
       <div class="src-item"><span class="src-num">⑲</span><div><a href="https://australianaviation.com.au/2026/03/australias-jet-fuel-supply-secure-for-now-says-transport-minister/" target="_blank">Jet fuel supply secure for now — Australian Aviation</a><div class="src-date">2026年3月｜交通部长声明·航油29-30天存量</div></div></div>
       <div class="src-item"><span class="src-num">⑳</span><div><a href="https://www.ibtimes.com.au/australia-fuel-crisis-deepens-march-2026-panic-buying-soaring-prices-supply-warnings-1864000" target="_blank">Australia Fuel Crisis Deepens — iBTimes Australia</a><div class="src-date">2026年3月｜恐慌抢购·库存38天汽油/30天柴油</div></div></div>
+      <div class="src-item"><span class="src-num">㉑</span><div><a href="https://www.bloomberg.com/news/articles/2026-04-07/australian-gasoline-prices-fall-for-first-time-since-iran-war" target="_blank">Australian Gasoline Prices Fall for First Time Since Iran War — Bloomberg</a><div class="src-date">2026年4月7日｜汽油$2.40/升首次下跌·柴油$3.13/升创2006年新高</div></div></div>
+      <div class="src-item"><span class="src-num">㉒</span><div><a href="https://www.ainvest.com/news/australia-fuel-supply-chain-breaking-point-53-ships-arrive-time-2604/" target="_blank">53 Ships on the Way, But Will They Arrive in Time? — ainvest</a><div class="src-date">2026年4月｜53艘油轮37亿升在途·业界警告4月下旬供应悬崖风险</div></div></div>
+      <div class="src-item"><span class="src-num">㉔</span><div><a href="https://www.argusmedia.com/en/news-and-insights/latest-market-news/2808708-asia-fuel-crunch-pushes-australia-to-us-europe" target="_blank">Asia fuel crunch pushes Australia to US, Europe — Argus Media</a><div class="src-date">2026年4月｜亚洲炼厂紧缺·3月柴油到港↓147万桶·STI Solace（LR2）5月初抵悉尼·欧美货首次大规模调配</div></div></div>
+      <div class="src-item"><span class="src-num">㉓</span><div><a href="https://investinglive.com/commodities/australia-to-release-762-million-litres-of-fuel-after-easing-stockpile-rules-20260313/" target="_blank">Australia to Release 762 Million Litres After Easing Stockpile Rules — InvestingLive</a><div class="src-date">2026年3月13日｜MSO下调20%·释放7.62亿升·重点供给区域市场</div></div></div>
     </div>
 
     <div style="margin-top:20px">
@@ -730,7 +794,7 @@
       1月-2月周度到港数据基于Vortexa 2025年均值（79.75艘/月）估算，报告内均有标注。
       3月及4月数据基于澳洲政府官员公开声明、主流媒体报道及Argus/Vortexa贸易分析。
       燃油价格数据来自ACCC，仅代表首府城市周平均，部分地区价格可能有所不同。
-      本报告生成时间：<strong style="color:#f6c90e">2026年4月1日</strong>。
+      本报告生成时间：<strong style="color:#f6c90e">2026年4月7日</strong>。
     </div>
   </div>
 </div>
@@ -777,10 +841,27 @@
 
 <footer>
   ⚠️ 本报告为信息分析用途，整合多方公开来源，估算数据均有标注，不构成投资或商业建议。<br/>
-  报告生成：<strong>2026年4月1日</strong> ｜ 数据来源索引见"📚 数据来源"标签页（共20条引用）
+  报告生成：<strong>2026年4月7日</strong> ｜ 数据来源索引见"📚 数据来源"标签页（共24条引用）
 </footer>
 
 <script>
+// ---- Smooth slow scroll ----
+(function(){
+  var keys={ArrowUp:1,ArrowDown:1,PageUp:1,PageDown:1,Space:1,Home:1,End:1};
+  function smoothScroll(el,target,duration){
+    var start=el.scrollTop,change=target-start,startTime=null;
+    function ease(t,b,c,d){t/=d/2;if(t<1)return c/2*t*t+b;t--;return -c/2*(t*(t-2)-1)+b;}
+    function step(ts){if(!startTime)startTime=ts;var e=ts-startTime;el.scrollTop=ease(e,start,change,duration);if(e<duration)requestAnimationFrame(step);}
+    requestAnimationFrame(step);
+  }
+  document.addEventListener('wheel',function(e){
+    if(e.ctrlKey)return;
+    e.preventDefault();
+    var el=document.scrollingElement||document.documentElement;
+    smoothScroll(el,Math.max(0,Math.min(el.scrollTop+e.deltaY*1.5,el.scrollHeight-el.clientHeight)),1200);
+  },{passive:false});
+})();
+
 function switchTab(name, el) {
   document.querySelectorAll('.tab-section').forEach(function(s){s.classList.remove('active');});
   document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
@@ -800,8 +881,8 @@ new Chart(document.getElementById('shortageChart'),{
   data:{
     labels:['NSW','VIC','QLD','WA','SA','TAS','NT','ACT'],
     datasets:[
-      {label:'柴油断货站',data:[142,118,95,52,31,9,6,4],backgroundColor:'rgba(59,130,246,0.8)',borderColor:'#3b82f6',borderWidth:1,borderRadius:4},
-      {label:'汽油断货站',data:[38,29,25,18,8,4,2,1],backgroundColor:'rgba(245,158,11,0.8)',borderColor:'#f59e0b',borderWidth:1,borderRadius:4}
+      {label:'柴油断货站',data:[178,105,110,58,31,9,6,4],backgroundColor:'rgba(59,130,246,0.8)',borderColor:'#3b82f6',borderWidth:1,borderRadius:4},
+      {label:'汽油断货站',data:[48,38,59,22,8,4,2,1],backgroundColor:'rgba(245,158,11,0.8)',borderColor:'#f59e0b',borderWidth:1,borderRadius:4}
     ]
   },
   options:{
@@ -818,10 +899,10 @@ new Chart(document.getElementById('shortageChart'),{
 new Chart(document.getElementById('priceChart'),{
   type:'line',
   data:{
-    labels:['1月初','1月末','2月初','2月末','3月初','3月中','3月27日','4月1日\n(减税后)'],
+    labels:['1月初','1月末','2月初','2月末','3月初','3月中','3月27日','4月1日','4月7日\n(首次下跌)'],
     datasets:[
-      {label:'汽油 ($/升)',data:[1.72,1.68,1.78,1.89,2.09,2.38,2.53,2.27],borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.08)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#f59e0b',borderWidth:2},
-      {label:'柴油 ($/升)',data:[1.93,1.91,1.99,2.12,2.38,2.72,3.03,2.77],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.08)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#3b82f6',borderWidth:2}
+      {label:'汽油 ($/升)',data:[1.72,1.68,1.78,1.89,2.09,2.38,2.53,2.37,2.40],borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.08)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#f59e0b',borderWidth:2},
+      {label:'柴油 ($/升)',data:[1.93,1.91,1.99,2.12,2.38,2.72,3.03,2.88,3.13],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.08)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#3b82f6',borderWidth:2}
     ]
   },
   options:{

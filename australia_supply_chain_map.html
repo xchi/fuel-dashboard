@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Australia Supply Chain Map – Natural Gas, Fuel &amp; Fertiliser</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #060d1f;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #e0e8ff;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #header {
+    padding: 14px 24px 10px;
+    border-bottom: 1px solid #1a2a50;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #0a1628 0%, #0d1e3d 100%);
+  }
+
+  #header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.4px;
+  }
+
+  #header p {
+    font-size: 11px;
+    color: #5878a0;
+    margin-top: 3px;
+  }
+
+  #controls {
+    display: flex;
+    gap: 8px;
+    padding: 9px 24px;
+    flex-shrink: 0;
+    border-bottom: 1px solid #1a2a50;
+    align-items: center;
+    background: #070e20;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 11px;
+    color: #5878a0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-right: 4px;
+  }
+
+  .filter-btn {
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1.5px solid;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    background: transparent;
+    letter-spacing: 0.3px;
+  }
+
+  .filter-btn[data-type="all"] { border-color: #6677aa; color: #8899cc; }
+  .filter-btn[data-type="all"].active { background: #6677aa; color: #fff; }
+  .filter-btn[data-type="gas"] { border-color: #ff9500; color: #ff9500; }
+  .filter-btn[data-type="gas"].active { background: #ff9500; color: #000; }
+  .filter-btn[data-type="fuel"] { border-color: #00b4ff; color: #00b4ff; }
+  .filter-btn[data-type="fuel"].active { background: #00b4ff; color: #000; }
+  .filter-btn[data-type="fertiliser"] { border-color: #5dc85d; color: #5dc85d; }
+  .filter-btn[data-type="fertiliser"].active { background: #5dc85d; color: #000; }
+
+  .legend-hint {
+    margin-left: auto;
+    font-size: 11px;
+    color: #4a6080;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-line-solid {
+    width: 24px;
+    height: 2px;
+    background: #8899cc;
+    border-radius: 1px;
+  }
+
+  .legend-line-dashed {
+    width: 24px;
+    height: 2px;
+    background: repeating-linear-gradient(to right, #8899cc 0, #8899cc 5px, transparent 5px, transparent 9px);
+  }
+
+  #map-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #02060f;
+  }
+
+  #map-wrapper svg {
+    width: 100%;
+    height: 100%;
+    background: #02060f;
+  }
+
+  .country {
+    fill: #0f2040;
+    stroke: #1a3060;
+    stroke-width: 0.4px;
+  }
+
+  .country.highlight {
+    fill: #1b3d70;
+    stroke: #3366bb;
+    stroke-width: 1px;
+  }
+
+  .country.australia-country {
+    fill: #1d4080;
+    stroke: #5599ee;
+    stroke-width: 1.5px;
+  }
+
+  .sphere-bg { fill: #04090f; }
+  .graticule { fill: none; stroke: #0c1830; stroke-width: 0.3px; }
+
+  .flow-path {
+    fill: none;
+    stroke-linecap: round;
+    cursor: pointer;
+    transition: opacity 0.2s, stroke-width 0.2s;
+  }
+
+  .node-pulse {
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.15; r: 14; }
+    50% { opacity: 0.3; r: 20; }
+  }
+
+  .node-label {
+    font-size: 10px;
+    font-weight: 600;
+    pointer-events: none;
+    paint-order: stroke;
+    stroke: #04090f;
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+
+  #tooltip {
+    position: absolute;
+    background: rgba(6, 14, 32, 0.97);
+    border: 1px solid #2a4a80;
+    border-radius: 9px;
+    padding: 11px 15px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    max-width: 220px;
+    line-height: 1.55;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+  }
+
+  .tt-title { font-weight: 700; font-size: 13px; margin-bottom: 5px; color: #fff; }
+  .tt-route { font-size: 11px; color: #7090b8; margin-bottom: 4px; }
+  .tt-commodity { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .tt-detail { color: #8aaccc; font-size: 11px; }
+
+  .dir-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+  .export-badge { background: #c04000; color: #fff; }
+  .import-badge { background: #004aaa; color: #fff; }
+
+  #loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #4a6090;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+  }
+
+  #stats-bar {
+    position: absolute;
+    bottom: 14px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .stat-pill {
+    background: rgba(6, 14, 32, 0.88);
+    border: 1px solid #1a2a50;
+    border-radius: 6px;
+    padding: 5px 11px;
+    font-size: 10.5px;
+    color: #7090b0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  #domestic-panel {
+    position: absolute;
+    bottom: 14px;
+    left: 62px;
+    background: rgba(6, 14, 32, 0.92);
+    border: 1px solid #1a2a40;
+    border-radius: 9px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: #7090b0;
+    max-width: 240px;
+    line-height: 1.55;
+    transition: border-color 0.3s;
+  }
+
+  #domestic-panel h3 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .dp-row {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 5px;
+    align-items: flex-start;
+  }
+
+  .dp-diamond {
+    width: 10px; height: 10px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transform: rotate(45deg);
+    border-radius: 1px;
+  }
+
+  .dp-name { font-weight: 600; }
+  .dp-sub  { color: #5878a0; font-size: 10px; }
+  .dp-note { margin-top: 7px; padding-top: 7px; font-size: 10px; }
+
+  #dep-panel {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: rgba(6, 14, 32, 0.92);
+    border: 1px solid #1a2a40;
+    border-radius: 9px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: #7090b0;
+    min-width: 200px;
+    line-height: 1.55;
+    display: none;
+    transition: border-color 0.3s;
+  }
+
+  #dep-panel.visible { display: block; }
+
+  #dep-panel h3 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 7px;
+  }
+
+  .dep-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    gap: 10px;
+  }
+
+  .dep-label { color: #9ab8c8; white-space: nowrap; }
+
+  .dep-bar-wrap {
+    flex: 1;
+    height: 5px;
+    background: #0f2030;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .dep-bar { height: 100%; border-radius: 3px; }
+
+  .dep-pct { font-weight: 700; font-size: 11px; min-width: 36px; text-align: right; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>🇦🇺 Australia — Natural Gas, Fuel &amp; Fertiliser Supply Chain</h1>
+  <p>International trade flows &nbsp;·&nbsp; Hover over flows for details &nbsp;·&nbsp; Use filters to focus by commodity</p>
+</div>
+
+<div id="controls">
+  <span class="filter-label">Show:</span>
+  <button class="filter-btn active" data-type="all">All Commodities</button>
+  <button class="filter-btn" data-type="gas">🔥 Natural Gas (LNG)</button>
+  <button class="filter-btn" data-type="fuel">⛽ Fuel / Petroleum</button>
+  <button class="filter-btn" data-type="fertiliser">🌿 Fertiliser</button>
+  <div class="legend-hint">
+    <div class="legend-item">
+      <div class="legend-line-solid"></div>
+      <span>Export</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-line-dashed"></div>
+      <span>Import</span>
+    </div>
+    <div class="legend-item" style="color:#b0d870">
+      <svg width="12" height="12" style="flex-shrink:0"><rect x="1" y="1" width="10" height="10" transform="rotate(45,6,6)" fill="#c8e870" stroke="#a0cc40" stroke-width="1"/></svg>
+      <span>Domestic producer</span>
+    </div>
+    <div class="legend-item" style="color:#e8c878">
+      <svg width="12" height="12" style="flex-shrink:0"><rect x="1" y="1" width="10" height="10" transform="rotate(45,6,6)" fill="none" stroke="#e8c040" stroke-width="1.5" stroke-dasharray="2,1.5"/></svg>
+      <span>Planned / upcoming</span>
+    </div>
+    <div class="legend-item" style="color:#556677">
+      <svg width="12" height="12" style="flex-shrink:0"><rect x="1" y="1" width="10" height="10" transform="rotate(45,6,6)" fill="none" stroke="#445566" stroke-width="1.5" stroke-dasharray="2,1.5"/></svg>
+      <span>Closed / declining</span>
+    </div>
+  </div>
+</div>
+
+<div id="map-wrapper">
+  <div id="loading">Loading world map…</div>
+  <div id="tooltip"></div>
+  <div id="stats-bar"></div>
+
+  <!-- Domestic production panel — rendered by JS -->
+  <div id="domestic-panel"></div>
+
+  <!-- Import dependency panel — rendered by JS -->
+  <div id="dep-panel"></div>
+</div>
+
+<script>
+// ─── Trade data ───────────────────────────────────────────────────────────────
+
+const COLORS = { gas: '#ff9500', fuel: '#00b4ff', fertiliser: '#5dc85d' };
+
+const LOCATIONS = {
+  australia:      { coords: [134.0, -25.7],  label: 'Australia',      off: [0, 22] },
+  japan:          { coords: [138.25, 36.2],  label: 'Japan',           off: [0, -14] },
+  china:          { coords: [104.2, 35.9],   label: 'China',           off: [0, -14] },
+  skorea:         { coords: [127.8, 35.9],   label: 'S. Korea',        off: [22, 0] },
+  taiwan:         { coords: [120.9, 23.5],   label: 'Taiwan',          off: [22, 0] },
+  india:          { coords: [78.96, 20.6],   label: 'India',           off: [-18, 4] },
+  singapore:      { coords: [103.8, 1.35],   label: 'Singapore',       off: [22, 0] },
+  malaysia:       { coords: [109.7, 3.1],    label: 'Malaysia',        off: [0, 14] },
+  uae:            { coords: [53.85, 23.42],  label: 'UAE',             off: [-14, -12] },
+  saudiarabia:    { coords: [44.0, 23.89],   label: 'Saudi Arabia',    off: [-8, 14] },
+  canada:         { coords: [-96.8, 56.1],   label: 'Canada',          off: [0, -14] },
+  morocco:        { coords: [-6.5, 31.8],    label: 'Morocco',         off: [-14, -12] },
+  russia:         { coords: [60.0, 55.75],   label: 'Russia',          off: [0, -14] },
+  indonesia:      { coords: [117.0, -2.5],   label: 'Indonesia',       off: [0, 14] },
+  // ── Fertiliser domestic sites ──────────────────────────────────────────────
+  phosphate_hill: { coords: [139.9, -21.5],  label: 'Phosphate Hill\n(IPF, QLD)',        off: [28, 2],   domestic: true, commodityType: 'fertiliser' },
+  csbp_kwinana:   { coords: [115.8, -32.2],  label: 'CSBP Kwinana\n(Wesfarmers, WA)',    off: [-32, 2],  domestic: true, commodityType: 'fertiliser' },
+  karratha_ceres: { coords: [116.8, -20.7],  label: 'Project Ceres\n(Karratha, WA)',     off: [-34, 2],  domestic: true, commodityType: 'fertiliser', future: true },
+  // ── Fuel domestic sites ────────────────────────────────────────────────────
+  lytton:         { coords: [153.15, -27.4], label: 'Ampol Lytton\nRefinery (QLD)',      off: [30, 2],   domestic: true, commodityType: 'fuel' },
+  geelong_ref:    { coords: [144.35, -38.2], label: 'Viva Energy\nGeelong (VIC)',         off: [30, 2],   domestic: true, commodityType: 'fuel' },
+  // ── Gas domestic production fields ─────────────────────────────────────────
+  nw_shelf:       { coords: [114.5, -21.5],  label: 'NW Shelf /\nCarnarvon (WA)',        off: [-34, 2],  domestic: true, commodityType: 'gas' },
+  cooper_basin:   { coords: [140.5, -28.0],  label: 'Cooper Basin\n(SA / QLD)',          off: [30, 2],   domestic: true, commodityType: 'gas' },
+  qld_csg:        { coords: [150.5, -26.5],  label: 'QLD CSG Fields\n(Surat Basin)',     off: [30, 2],   domestic: true, commodityType: 'gas' },
+  bass_strait:    { coords: [148.5, -39.0],  label: 'Bass Strait\n(VIC — declining)',    off: [30, 2],   domestic: true, commodityType: 'gas', declining: true },
+};
+
+// AUSTRALIA_COUNTRY_IDs: ISO numeric 36 for Australia.
+// Neighbors to highlight: Japan=392, China=156, South Korea=410, India=356,
+// Singapore=702, Malaysia=458, UAE=784, Saudi Arabia=682,
+// Canada=124, Morocco=504, Russia=643, Indonesia=360, Taiwan=158
+
+const HIGHLIGHT_IDS = new Set([36, 392, 156, 410, 356, 702, 458, 784, 682, 124, 504, 643, 360, 158]);
+
+const FLOWS = [
+  // ─ Natural Gas EXPORTS (Australia → world) ──────────────────────────────
+  { from:'australia', to:'japan',       type:'gas',        dir:'export', vol:5,   label:'LNG Export',            detail:'~70 MT/yr · One of Australia\'s top LNG buyers\nWoodside, Shell QCLNG, INPEX Ichthys' },
+  { from:'australia', to:'china',       type:'gas',        dir:'export', vol:4.5, label:'LNG Export',            detail:'~50 MT/yr · Rapidly growing LNG buyer\nNorth West Shelf, Gorgon projects' },
+  { from:'australia', to:'skorea',      type:'gas',        dir:'export', vol:3,   label:'LNG Export',            detail:'~20 MT/yr · Long-term KOGAS contracts\nDarwin LNG, APLNG cargoes' },
+  { from:'australia', to:'taiwan',      type:'gas',        dir:'export', vol:2,   label:'LNG Export',            detail:'~10 MT/yr · CPC Corporation contracts\nSpot and long-term cargoes' },
+  { from:'australia', to:'india',       type:'gas',        dir:'export', vol:1.8, label:'LNG Export',            detail:'~8 MT/yr · PETRONET, IOC buyers\nGrowing strategic market' },
+  { from:'australia', to:'singapore',   type:'gas',        dir:'export', vol:1.2, label:'LNG Export',            detail:'Spot LNG cargoes\nGas hub re-export market' },
+
+  // ─ Fuel IMPORTS (world → Australia) ─────────────────────────────────────
+  { from:'singapore',  to:'australia',  type:'fuel',       dir:'import', vol:4,   label:'Refined Petroleum Import', detail:'Largest source of diesel, petrol & jet fuel\nExxon, Shell, BP refineries' },
+  { from:'skorea',     to:'australia',  type:'fuel',       dir:'import', vol:3,   label:'Refined Petroleum Import', detail:'2nd largest fuel supplier\nSK Energy, Hyundai Oilbank' },
+  { from:'malaysia',   to:'australia',  type:'fuel',       dir:'import', vol:2.2, label:'Refined Petroleum Import', detail:'Diesel & jet fuel from PETRONAS\nPort Dickson refinery' },
+  { from:'india',      to:'australia',  type:'fuel',       dir:'import', vol:1.8, label:'Refined Petroleum Import', detail:'Growing diesel supplier\nReliance Industries Jamnagar' },
+  { from:'uae',        to:'australia',  type:'fuel',       dir:'import', vol:1.5, label:'Crude & LPG Import',       detail:'Crude oil & LPG from ADNOC\nStrategic Gulf supplier' },
+  { from:'china',      to:'australia',  type:'fuel',       dir:'import', vol:1.0, label:'Refined Petroleum Import', detail:'Some refined product imports\nPetroChina, Sinopec' },
+
+  // ─ Fertiliser IMPORTS (world → Australia) ───────────────────────────────
+  // ~50% of total fertiliser needs imported; urea ~90%, phosphates ~88%, potash ~100%
+  { from:'canada',     to:'australia',  type:'fertiliser', dir:'import', vol:3,   label:'Potash Import (MOP)',      detail:'Muriate of Potash — ~100% imported\nNutrien & Mosaic, Saskatchewan mines\nAustralia has no significant domestic potash' },
+  { from:'russia',     to:'australia',  type:'fertiliser', dir:'import', vol:2,   label:'Urea & Potash Import',     detail:'Urea & potash blends\nPre-2022 major source — volumes significantly reduced post-Ukraine conflict' },
+  { from:'china',      to:'australia',  type:'fertiliser', dir:'import', vol:2.2, label:'DAP / MAP Import',         detail:'Di- & Mono-ammonium Phosphate\n~88% of phosphate needs are imported\nChina is a major DAP/MAP supplier' },
+  { from:'malaysia',   to:'australia',  type:'fertiliser', dir:'import', vol:1.5, label:'Urea Import',              detail:'Granular urea for broadacre farming\n~90% of Australia\'s urea is imported\nPETRONAS DAGANGAN' },
+  { from:'uae',        to:'australia',  type:'fertiliser', dir:'import', vol:1.5, label:'Urea Import',              detail:'~90% of Australia\'s urea is imported\nADNOC-based urea via Fertiglobe\nMiddle East a key urea source' },
+  { from:'saudiarabia',to:'australia',  type:'fertiliser', dir:'import', vol:1.5, label:'Urea & DAP Import',        detail:'SABIC & Ma\'aden phosphate complex\nAmmonium phosphates & urea\n~88% of phosphate requirements imported' },
+  { from:'morocco',    to:'australia',  type:'fertiliser', dir:'import', vol:1.3, label:'Phosphate Rock Import',    detail:'OCP Group · Phosphate rock\nUsed in Australian superphosphate production\n(e.g. Incitec Pivot processes imported rock)' },
+  { from:'indonesia',  to:'australia',  type:'fertiliser', dir:'import', vol:1,   label:'NPK & Urea Import',        detail:'Regional fertiliser supply\nPupuk Indonesia group\nNPK blends & urea' },
+];
+
+// ─── Map setup ────────────────────────────────────────────────────────────────
+
+const wrapper = document.getElementById('map-wrapper');
+let W = wrapper.clientWidth;
+let H = wrapper.clientHeight;
+
+const svg = d3.select('#map-wrapper').append('svg').attr('width', W).attr('height', H);
+const defs = svg.append('defs');
+
+const projection = d3.geoNaturalEarth1()
+  .rotate([-135, 0])
+  .scale(Math.min(W, H) * 0.21)
+  .translate([W * 0.52, H * 0.5]);
+
+const pathGen = d3.geoPath().projection(projection);
+
+// ─── Zoom / Pan ───────────────────────────────────────────────────────────────
+const zoomGroup = svg.append('g').attr('id', 'zoom-root');
+// All layers live INSIDE the zoom group so everything scales together
+const sphereLayer    = zoomGroup.append('g');
+const countryLayer   = zoomGroup.append('g');
+const flowLayer      = zoomGroup.append('g');
+const nodeLayer      = zoomGroup.append('g');
+
+// Ocean and graticule go inside the zoom group so they scale with everything
+sphereLayer.append('path').datum({ type: 'Sphere' })
+  .attr('class', 'sphere-bg').attr('d', pathGen);
+
+sphereLayer.append('path').datum(d3.geoGraticule()())
+  .attr('class', 'graticule').attr('d', pathGen);
+
+const zoom = d3.zoom()
+  .scaleExtent([0.3, 12])
+  .on('zoom', (event) => {
+    zoomGroup.attr('transform', event.transform);
+  });
+
+svg.call(zoom);
+
+// Zoom controls
+const zoomCtrl = d3.select('#map-wrapper').append('div')
+  .style('position', 'absolute')
+  .style('top', '14px')
+  .style('left', '16px')
+  .style('display', 'flex')
+  .style('flex-direction', 'column')
+  .style('gap', '4px')
+  .style('z-index', '50');
+
+[['＋', 1.6], ['−', 0.625], ['⊙', 0]].forEach(([label, factor]) => {
+  zoomCtrl.append('button')
+    .text(label)
+    .style('width', '30px').style('height', '30px')
+    .style('border-radius', '6px')
+    .style('border', '1px solid #1a3060')
+    .style('background', 'rgba(6,14,32,0.88)')
+    .style('color', '#8899cc')
+    .style('font-size', '16px')
+    .style('cursor', 'pointer')
+    .style('display', 'flex').style('align-items', 'center').style('justify-content', 'center')
+    .style('padding', '0')
+    .on('click', () => {
+      if (factor === 0) {
+        svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+      } else {
+        svg.transition().duration(300).call(zoom.scaleBy, factor);
+      }
+    });
+});
+
+let activeFilter = 'all';
+
+// ─── Load world data ──────────────────────────────────────────────────────────
+
+fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+  .then(r => r.json())
+  .then(world => {
+    const el = document.getElementById('loading');
+    if (el) el.remove();
+
+    const countries = topojson.feature(world, world.objects.countries);
+
+    countryLayer.selectAll('path')
+      .data(countries.features)
+      .join('path')
+      .attr('class', d => {
+        const id = +d.id;
+        if (id === 36) return 'country australia-country';
+        if (HIGHLIGHT_IDS.has(id)) return 'country highlight';
+        return 'country';
+      })
+      .attr('d', pathGen);
+
+    render();
+    updateStats();
+  })
+  .catch(() => {
+    const el = document.getElementById('loading');
+    if (el) el.textContent = '(Map tiles unavailable — flows shown)';
+    render();
+  });
+
+// ─── Rendering ────────────────────────────────────────────────────────────────
+
+function project(key) {
+  const p = projection(LOCATIONS[key].coords);
+  return p;
+}
+
+function render() {
+  drawFlows();
+  drawNodes();
+}
+
+function drawFlows() {
+  flowLayer.selectAll('*').remove();
+  defs.selectAll('.flow-marker').remove();
+
+  const visible = activeFilter === 'all' ? FLOWS : FLOWS.filter(f => f.type === activeFilter);
+
+  // Group by type for layering (glow first, then lines)
+  visible.forEach((flow, i) => {
+    const p1 = project(flow.from);
+    const p2 = project(flow.to);
+    if (!p1 || !p2) return;
+
+    const [x1, y1] = p1;
+    const [x2, y2] = p2;
+
+    const dx = x2 - x1, dy = y2 - y1;
+    // Perpendicular bend — different per commodity to avoid stacking
+    const bendDir = flow.type === 'gas' ? 1 : flow.type === 'fuel' ? -1 : (i % 2 === 0 ? 0.6 : -0.6);
+    const bendAmt = 0.22 * bendDir;
+    const cx = (x1 + x2) / 2 - dy * bendAmt;
+    const cy = (y1 + y2) / 2 + dx * bendAmt;
+
+    const d = `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`;
+    const lw = 1.2 + flow.vol * 0.45;
+    const col = COLORS[flow.type];
+    const dash = flow.dir === 'import' ? `${lw * 4},${lw * 2.5}` : null;
+
+    // Arrow marker
+    const mid = `arr-${i}`;
+    const mk = defs.append('marker')
+      .attr('class', 'flow-marker')
+      .attr('id', mid)
+      .attr('markerWidth', 7).attr('markerHeight', 7)
+      .attr('refX', 4).attr('refY', 3.5)
+      .attr('orient', 'auto');
+    mk.append('polygon')
+      .attr('points', '0,0 7,3.5 0,7')
+      .attr('fill', col).attr('opacity', 0.85);
+
+    // Glow
+    flowLayer.append('path')
+      .attr('d', d).attr('stroke', col)
+      .attr('stroke-width', lw + 5).attr('opacity', 0.07)
+      .attr('fill', 'none').attr('stroke-linecap', 'round')
+      .attr('stroke-dasharray', dash);
+
+    // Main line
+    flowLayer.append('path')
+      .datum(flow)
+      .attr('class', 'flow-path')
+      .attr('d', d)
+      .attr('stroke', col)
+      .attr('stroke-width', lw)
+      .attr('opacity', 0.72)
+      .attr('stroke-dasharray', dash)
+      .attr('marker-end', `url(#${mid})`)
+      .on('mouseover', function(event, fl) {
+        d3.select(this).attr('opacity', 1).attr('stroke-width', lw + 1.5);
+        showTooltip(event, fl);
+      })
+      .on('mousemove', moveTooltip)
+      .on('mouseout', function() {
+        d3.select(this).attr('opacity', 0.72).attr('stroke-width', lw);
+        hideTooltip();
+      });
+  });
+}
+
+function drawNodes() {
+  nodeLayer.selectAll('*').remove();
+
+  const usedKeys = new Set();
+  const visFlows = activeFilter === 'all' ? FLOWS : FLOWS.filter(f => f.type === activeFilter);
+  visFlows.forEach(f => { usedKeys.add(f.from); usedKeys.add(f.to); });
+
+  // Show domestic production sites per active filter
+  const domesticByType = {
+    fertiliser: ['phosphate_hill', 'csbp_kwinana', 'karratha_ceres'],
+    fuel:       ['lytton', 'geelong_ref'],
+    gas:        ['nw_shelf', 'cooper_basin', 'qld_csg', 'bass_strait'],
+  };
+  const typesToShow = activeFilter === 'all' ? Object.keys(domesticByType) : [activeFilter];
+  typesToShow.forEach(t => (domesticByType[t] || []).forEach(k => usedKeys.add(k)));
+
+  Object.entries(LOCATIONS).forEach(([key, loc]) => {
+    if (!usedKeys.has(key)) return;
+    const pt = project(key);
+    if (!pt) return;
+    const [x, y] = pt;
+    const isAus = key === 'australia';
+    const isDomestic = !!loc.domestic;
+    const isFuture = !!loc.future;
+    const r = isAus ? 11 : 5;
+
+    const g = nodeLayer.append('g').attr('transform', `translate(${x},${y})`);
+
+    if (isAus) {
+      g.append('circle').attr('r', 28).attr('fill', '#4499ff')
+        .attr('opacity', 0.07).attr('class', 'node-pulse');
+      g.append('circle').attr('r', 18).attr('fill', '#4499ff').attr('opacity', 0.12);
+    }
+
+    if (isDomestic) {
+      // Diamond marker — colour matches commodity type
+      const ctype  = loc.commodityType || 'fertiliser';
+      const col    = COLORS[ctype];
+      const isDecl = !!loc.declining;
+      const s      = (isFuture || isDecl) ? 6 : 7;
+      g.append('rect')
+        .attr('x', -s).attr('y', -s)
+        .attr('width', s * 2).attr('height', s * 2)
+        .attr('transform', 'rotate(45)')
+        .attr('fill',         isFuture ? 'transparent' : isDecl ? 'transparent' : col)
+        .attr('stroke',       isFuture ? '#e8c040'     : col)
+        .attr('stroke-width', (isFuture || isDecl) ? 1.5 : 1)
+        .attr('stroke-dasharray', (isFuture || isDecl) ? '3,2' : null)
+        .attr('opacity', 0.9);
+    } else {
+      // Commodity dot ring
+      const nodeTypes = [...new Set(
+        visFlows.filter(f => f.from === key || f.to === key).map(f => f.type)
+      )];
+      nodeTypes.forEach((t, ti) => {
+        const angle = (ti / nodeTypes.length) * Math.PI * 2 - Math.PI / 2;
+        const rr = isAus ? 17 : r + 6;
+        g.append('circle')
+          .attr('cx', Math.cos(angle) * rr).attr('cy', Math.sin(angle) * rr)
+          .attr('r', 3.5).attr('fill', COLORS[t]).attr('opacity', 0.9);
+      });
+
+      g.append('circle')
+        .attr('r', r)
+        .attr('fill', isAus ? '#2255bb' : '#16254a')
+        .attr('stroke', isAus ? '#77aaff' : '#3a5488')
+        .attr('stroke-width', isAus ? 2 : 1)
+        .attr('opacity', 1);
+    }
+
+    const [ox, oy] = loc.off || [0, 14];
+    const labelLines = loc.label.split('\n');
+    const domesticColor = isDomestic
+      ? (isFuture ? '#e8c878' : loc.declining ? '#8899aa' : { gas: '#ffb840', fuel: '#60ccff', fertiliser: '#b0d870' }[loc.commodityType] || '#b0d870')
+      : null;
+    const labelColor = isDomestic ? domesticColor : (isAus ? '#aaccff' : '#b0c8e8');
+    const txt = g.append('text')
+      .attr('class', 'node-label')
+      .attr('x', ox).attr('y', oy + (isDomestic ? 8 : r))
+      .attr('text-anchor', ox < 0 ? 'end' : ox > 0 ? 'start' : 'middle')
+      .attr('fill', labelColor);
+    labelLines.forEach((line, li) => {
+      txt.append('tspan').attr('x', ox).attr('dy', li === 0 ? 0 : '1.1em').text(line);
+    });
+  });
+}
+
+// ─── Panel data ───────────────────────────────────────────────────────────────
+
+const PANEL_DATA = {
+  gas: {
+    accentColor: '#ff9500',
+    borderColor: '#4a3010',
+    titleColor:  '#ffb840',
+    noteColor:   '#5a4020',
+    icon: '🔥',
+    domestic: [
+      { label: 'NW Shelf / Carnarvon Basin, WA', sub: 'Woodside — Pluto, North West Shelf LNG, Wheatstone', future: false, declining: false },
+      { label: 'QLD CSG Fields (Surat Basin)',    sub: 'Santos GLNG, Shell QCLNG, Origin APLNG',           future: false, declining: false },
+      { label: 'Cooper Basin, SA / QLD',          sub: 'Santos, Beach Energy — domestic gas & LPG',        future: false, declining: false },
+      { label: 'Bass Strait, VIC',                sub: 'Woodside (ex ExxonMobil/BHP) — legacy fields, declining output', future: false, declining: true },
+    ],
+    note: 'Australia produces 100% of its natural gas domestically and is among the world\'s top 3 LNG exporters. Eastern Australia faces supply security concerns due to declining reserves in the Bass Strait.',
+    depRows: [
+      { label: 'Production',  pct: 100, barColor: '#ff9500', note: '100% domestically produced' },
+      { label: 'Import dep.', pct: 0,   barColor: '#334455', note: '~0% imported — net major exporter' },
+    ],
+    depNote: 'Australia exports ~80–100 MT LNG per year. No LNG imports as of 2025–26.',
+  },
+  fuel: {
+    accentColor: '#00b4ff',
+    borderColor: '#10304a',
+    titleColor:  '#60ccff',
+    noteColor:   '#103040',
+    icon: '⛽',
+    domestic: [
+      { label: 'Ampol Lytton Refinery, Brisbane QLD', sub: '~140,000 bbl/day capacity · Jet fuel, diesel, petrol', future: false, declining: false },
+      { label: 'Viva Energy Geelong Refinery, VIC',   sub: '~120,000 bbl/day capacity · Govt-supported to stay open', future: false, declining: false },
+      { label: 'BP Kwinana (WA) — closed 2021',       sub: 'Australia\'s largest refinery; closed due to economics',  future: false, declining: true },
+      { label: 'ExxonMobil Altona (VIC) — closed 2021', sub: 'Converted to fuel import terminal',                     future: false, declining: true },
+    ],
+    note: 'Only 2 refineries remain, covering ~18% of needs. ~82% of refined petroleum is imported. Liquid fuel security is a key national vulnerability.',
+    depRows: [
+      { label: 'Refined fuel', pct: 82, barColor: '#00b4ff', note: '~82% of refined products imported' },
+      { label: 'Crude / cond.', pct: 45, barColor: '#0077aa', note: '~45% of crude oil imported; rest is domestic offshore production' },
+    ],
+    depNote: 'Australia holds < 30 days of liquid fuel reserves — below the 90-day IEA benchmark.',
+  },
+  fertiliser: {
+    accentColor: '#5dc85d',
+    borderColor: '#1a3a20',
+    titleColor:  '#b0d870',
+    noteColor:   '#1a3020',
+    icon: '🌿',
+    domestic: [
+      { label: 'Incitec Pivot (IPF), Phosphate Hill QLD', sub: 'Phosphoric acid, MAP/DAP production',        future: false, declining: false },
+      { label: 'Wesfarmers CSBP, Kwinana WA',             sub: 'Ammonia, AN, phosphates, liquid fertilisers', future: false, declining: false },
+      { label: 'Project Ceres, Karratha WA',              sub: 'Green urea plant — response to 2021 AdBlue crisis; under development', future: true, declining: false },
+    ],
+    note: '~50% of total fertiliser needs are met by imports. Domestic production is concentrated in phosphates and nitrogen compounds.',
+    depRows: [
+      { label: 'Urea (N)',    pct: 90,  barColor: '#5dc85d', note: '~90% imported, mainly from Middle East & China' },
+      { label: 'Phosphate',  pct: 88,  barColor: '#4aaa4a', note: '~88% imported, mainly Morocco, Saudi Arabia, China' },
+      { label: 'Potash (K)', pct: 100, barColor: '#3a8a3a', note: '~100% imported — no domestic potash production' },
+      { label: 'Overall',    pct: 50,  barColor: '#8aaa60', note: '~50% of total fertiliser needs imported' },
+    ],
+    depNote: '% of Australia\'s needs supplied by imports (2025–26 data)',
+  },
+};
+
+function updateStats() {
+  const bar = document.getElementById('stats-bar');
+  if (!bar) return;
+  const gasExp  = FLOWS.filter(f => f.type === 'gas'        && f.dir === 'export').length;
+  const fuelImp = FLOWS.filter(f => f.type === 'fuel'       && f.dir === 'import').length;
+  const fertImp = FLOWS.filter(f => f.type === 'fertiliser' && f.dir === 'import').length;
+
+  bar.innerHTML = `
+    <div class="stat-pill">
+      <div class="stat-dot" style="background:${COLORS.gas}"></div>
+      Gas: <strong style="color:#ffc060">${gasExp} LNG export routes · 100% domestic production</strong>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-dot" style="background:${COLORS.fuel}"></div>
+      Fuel: <strong style="color:#60d0ff">${fuelImp} import sources · ~82% of refined fuel imported</strong>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-dot" style="background:${COLORS.fertiliser}"></div>
+      Fertiliser: <strong style="color:#90e090">${fertImp} import sources · ~50% of needs imported</strong>
+    </div>`;
+
+  updatePanels();
+}
+
+function updatePanels() {
+  updateDomesticPanel();
+  updateDepPanel();
+}
+
+function updateDomesticPanel() {
+  const panel = document.getElementById('domestic-panel');
+  if (!panel) return;
+
+  // In 'all' view, show a compact summary for all three types
+  const types = activeFilter === 'all'
+    ? ['gas', 'fuel', 'fertiliser']
+    : [activeFilter];
+
+  let html = '';
+  types.forEach(type => {
+    const d = PANEL_DATA[type];
+    const borderTop = html ? `border-top:1px solid ${d.borderColor}; margin-top:8px; padding-top:8px;` : '';
+    html += `<div style="${borderTop}">`;
+    html += `<h3 style="color:${d.titleColor}">${d.icon} ${type.charAt(0).toUpperCase()+type.slice(1)} — Domestic Production</h3>`;
+    d.domestic.forEach(site => {
+      const col  = site.declining ? '#556677' : (site.future ? '#e8c878' : d.titleColor);
+      const dash = (site.future || site.declining) ? `border:1px dashed ${site.declining ? '#445566' : '#e8c040'}; background:transparent;` : `background:${d.accentColor};`;
+      html += `<div class="dp-row">
+        <div class="dp-diamond" style="${dash}"></div>
+        <div>
+          <div class="dp-name" style="color:${col}">${site.label}${site.future ? ' ⚙' : site.declining ? ' ✕' : ''}</div>
+          <div class="dp-sub">${site.sub}</div>
+        </div>
+      </div>`;
+    });
+    html += `<div class="dp-note" style="border-top:1px solid ${d.borderColor}; color:${d.noteColor.replace('0x','#')}; color:#4a6050">${d.note}</div>`;
+    html += `</div>`;
+  });
+
+  panel.innerHTML = html;
+  panel.style.borderColor = activeFilter === 'all' ? '#1a2a40' : PANEL_DATA[activeFilter].borderColor;
+}
+
+function updateDepPanel() {
+  const panel = document.getElementById('dep-panel');
+  if (!panel) return;
+
+  if (activeFilter === 'all') {
+    panel.classList.remove('visible');
+    return;
+  }
+
+  const d = PANEL_DATA[activeFilter];
+  panel.style.borderColor = d.borderColor;
+
+  let html = `<h3 style="color:${d.titleColor}">${d.icon} Import Dependency</h3>`;
+  d.depRows.forEach(row => {
+    html += `<div class="dep-row">
+      <span class="dep-label">${row.label}</span>
+      <div class="dep-bar-wrap"><div class="dep-bar" style="width:${row.pct}%; background:${row.barColor}"></div></div>
+      <span class="dep-pct" style="color:${d.titleColor}">${row.pct === 0 ? '0%' : '~'+row.pct+'%'}</span>
+    </div>`;
+  });
+  html += `<div style="margin-top:6px; font-size:10px; color:#4a6050">${d.depNote}</div>`;
+
+  panel.innerHTML = html;
+  panel.classList.add('visible');
+}
+
+// ─── Tooltip ──────────────────────────────────────────────────────────────────
+
+const tooltip = document.getElementById('tooltip');
+
+function showTooltip(event, flow) {
+  const fromName = LOCATIONS[flow.from].label.replace('\n', ' ');
+  const toName   = LOCATIONS[flow.to].label.replace('\n', ' ');
+  const badge = flow.dir === 'export'
+    ? `<span class="dir-badge export-badge">EXPORT</span>`
+    : `<span class="dir-badge import-badge">IMPORT</span>`;
+
+  tooltip.innerHTML = `
+    <div class="tt-title">${flow.label} ${badge}</div>
+    <div class="tt-route">${fromName} &nbsp;→&nbsp; ${toName}</div>
+    <div class="tt-commodity" style="color:${COLORS[flow.type]}">${flow.type.toUpperCase()}</div>
+    <div class="tt-detail">${flow.detail.replace(/\n/g, '<br>')}</div>`;
+  tooltip.style.opacity = '1';
+  moveTooltip(event);
+}
+
+function moveTooltip(event) {
+  const rect = wrapper.getBoundingClientRect();
+  let tx = event.clientX - rect.left + 16;
+  let ty = event.clientY - rect.top - 12;
+  if (tx + 230 > W) tx -= 240;
+  if (ty + 130 > H) ty -= 150;
+  tooltip.style.left = tx + 'px';
+  tooltip.style.top  = ty + 'px';
+}
+
+function hideTooltip() { tooltip.style.opacity = '0'; }
+
+// ─── Filter buttons ───────────────────────────────────────────────────────────
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    activeFilter = this.dataset.type;
+    render();
+    updateStats();
+  });
+});
+
+// ─── Resize ───────────────────────────────────────────────────────────────────
+
+window.addEventListener('resize', () => {
+  W = wrapper.clientWidth;
+  H = wrapper.clientHeight;
+  svg.attr('width', W).attr('height', H);
+  projection.scale(Math.min(W, H) * 0.21).translate([W * 0.52, H * 0.5]);
+  render();
+});
+</script>
+</body>
+</html>

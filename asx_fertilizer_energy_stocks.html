@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASX 肥料 & 能源股票总览 — 资料收集日期：2026年4月10日</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #232736;
+      --border: #2e3245;
+      --accent-green: #00e676;
+      --accent-red: #ff5252;
+      --accent-blue: #448aff;
+      --accent-gold: #ffd740;
+      --accent-purple: #ce93d8;
+      --text: #e8eaf6;
+      --text-muted: #9e9eb5;
+      --hot: #ff6d00;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      padding: 0 0 60px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a1d27 0%, #12152a 100%);
+      border-bottom: 2px solid var(--accent-blue);
+      padding: 32px 40px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+    header h1 span.flag { margin-right: 10px; }
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .header-meta .date-badge {
+      background: var(--accent-blue);
+      color: #fff;
+      padding: 3px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .header-meta .disclaimer {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    /* ── Nav tabs ── */
+    nav {
+      display: flex;
+      gap: 0;
+      padding: 0 40px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    nav a {
+      padding: 14px 28px;
+      text-decoration: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-bottom: 3px solid transparent;
+      transition: all .2s;
+    }
+    nav a:hover, nav a.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+
+    /* ── Main layout ── */
+    main { padding: 32px 40px; max-width: 1400px; margin: 0 auto; }
+
+    /* ── Section titles ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 40px 0 20px;
+    }
+    .section-header h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .section-header .tag {
+      background: var(--accent-blue);
+      color: #fff;
+      padding: 2px 12px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .section-header .tag.green { background: #00897b; }
+    .section-header .tag.orange { background: #e65100; }
+    .section-header .tag.purple { background: #6a1b9a; }
+
+    /* ── Rating legend ── */
+    .legend {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .dot-1 { background: #00e676; }
+    .dot-2 { background: #69f0ae; }
+    .dot-3 { background: #ffd740; }
+    .dot-4 { background: #ff9800; }
+    .dot-5 { background: #ff5252; }
+
+    /* ── Cards grid ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .stock-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      transition: transform .2s, border-color .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .stock-card:hover { transform: translateY(-3px); border-color: var(--accent-blue); }
+    .stock-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .rank-1::before { background: linear-gradient(90deg, #00e676, #00bcd4); }
+    .rank-2::before { background: linear-gradient(90deg, #69f0ae, #00e676); }
+    .rank-3::before { background: linear-gradient(90deg, #ffd740, #ff9800); }
+    .rank-4::before { background: linear-gradient(90deg, #ff9800, #ff5722); }
+    .rank-5::before { background: linear-gradient(90deg, #ff5252, #b71c1c); }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .ticker {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      letter-spacing: 1px;
+    }
+    .rank-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 0.95rem;
+      border: 2px solid;
+    }
+    .rank-badge.r1 { background: rgba(0,230,118,.15); color: #00e676; border-color: #00e676; }
+    .rank-badge.r2 { background: rgba(105,240,174,.12); color: #69f0ae; border-color: #69f0ae; }
+    .rank-badge.r3 { background: rgba(255,215,64,.12); color: #ffd740; border-color: #ffd740; }
+    .rank-badge.r4 { background: rgba(255,152,0,.12); color: #ff9800; border-color: #ff9800; }
+    .rank-badge.r5 { background: rgba(255,82,82,.12); color: #ff5252; border-color: #ff5252; }
+
+    .company-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .sub-sector {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .price {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .change {
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 8px;
+    }
+    .change.up { background: rgba(0,230,118,.15); color: var(--accent-green); }
+    .change.down { background: rgba(255,82,82,.15); color: var(--accent-red); }
+    .change.flat { background: rgba(255,215,64,.1); color: var(--accent-gold); }
+
+    .rec-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    .buy { background: rgba(0,230,118,.18); color: #00e676; border: 1px solid rgba(0,230,118,.4); }
+    .buy-hold { background: rgba(105,240,174,.13); color: #69f0ae; border: 1px solid rgba(105,240,174,.35); }
+    .hold { background: rgba(255,215,64,.13); color: #ffd740; border: 1px solid rgba(255,215,64,.3); }
+    .speculative { background: rgba(255,152,0,.13); color: #ff9800; border: 1px solid rgba(255,152,0,.3); }
+    .watch { background: rgba(206,147,216,.13); color: var(--accent-purple); border: 1px solid rgba(206,147,216,.3); }
+
+    .desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      margin-top: 4px;
+    }
+
+    /* ── Hot News ── */
+    .news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 16px;
+    }
+    .news-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      transition: transform .2s;
+    }
+    .news-card:hover { transform: translateY(-2px); border-color: var(--hot); }
+    .news-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    .tag-energy { background: rgba(255,109,0,.2); color: var(--hot); }
+    .tag-fertilizer { background: rgba(0,137,123,.2); color: #4db6ac; }
+    .tag-uranium { background: rgba(206,147,216,.2); color: var(--accent-purple); }
+    .tag-macro { background: rgba(68,138,255,.2); color: var(--accent-blue); }
+    .news-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .news-body {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .news-date {
+      margin-top: 10px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Sources ── */
+    .sources-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 10px;
+    }
+    .source-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .source-item .icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+    .source-item a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-size: 0.82rem;
+      word-break: break-all;
+    }
+    .source-item a:hover { text-decoration: underline; }
+    .source-item .src-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
+
+    /* ── Market summary bar ── */
+    .summary-bar {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 8px;
+    }
+    .summary-item { text-align: center; min-width: 80px; }
+    .summary-item .s-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; }
+    .summary-item .s-val { font-size: 1rem; font-weight: 700; }
+
+    /* ── Scrollable table for full list ── */
+    .table-wrap { overflow-x: auto; margin-top: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    thead th {
+      background: var(--surface2);
+      color: var(--text-muted);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+    tbody tr:hover { background: var(--surface2); }
+    tbody td { padding: 10px 14px; vertical-align: middle; }
+    .td-ticker { font-weight: 800; color: var(--accent-blue); }
+    .td-price { font-weight: 700; }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+    }
+
+    @media (max-width: 700px) {
+      header, main, nav { padding-left: 16px; padding-right: 16px; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .news-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><span class="flag">🇦🇺</span>ASX 肥料 &amp; 能源股票综合总览</h1>
+  <div class="header-meta">
+    <span class="date-badge">📅 资料收集日期：2026年4月10日（周五）</span>
+    <span class="disclaimer">⚠️ 仅供参考，不构成投资建议。投资有风险，入市需谨慎。</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#fertilizer" class="active">🌱 肥料板块</a>
+  <a href="#energy">⚡ 能源板块</a>
+  <a href="#news">🔥 热门新闻</a>
+  <a href="#sources">🔗 数据来源</a>
+</nav>
+
+<main>
+
+  <!-- ══════════ 市场背景 ══════════ -->
+  <div class="section-header" style="margin-top:24px;">
+    <h2>🌐 今日市场背景</h2>
+  </div>
+  <div class="summary-bar">
+    <div class="summary-item">
+      <div class="s-label">布伦特原油</div>
+      <div class="s-val" style="color:#ff9800;">≈ $85–$90</div>
+    </div>
+    <div class="summary-item">
+      <div class="s-label">全球尿素价格</div>
+      <div class="s-val" style="color:#ff5252;">$590+/吨</div>
+    </div>
+    <div class="summary-item">
+      <div class="s-label">铀现货价格</div>
+      <div class="s-val" style="color:#ce93d8;">$82–83/磅</div>
+    </div>
+    <div class="summary-item">
+      <div class="s-label">澳元/美元</div>
+      <div class="s-val" style="color:#448aff;">≈ 0.627</div>
+    </div>
+    <div class="summary-item">
+      <div class="s-label">关键驱动</div>
+      <div class="s-val" style="color:#ffd740;font-size:.75rem;">中东局势 / 霍尔木兹海峡</div>
+    </div>
+  </div>
+
+  <!-- ══════════ 肥料板块 ══════════ -->
+  <div id="fertilizer" class="section-header">
+    <h2>🌱 肥料板块股票</h2>
+    <span class="tag green">按推荐度排序</span>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="dot dot-1"></span>强力买入（#1）</div>
+    <div class="legend-item"><span class="dot dot-2"></span>买入（#2）</div>
+    <div class="legend-item"><span class="dot dot-3"></span>买入/持有（#3）</div>
+    <div class="legend-item"><span class="dot dot-4"></span>投机性买入（#4）</div>
+    <div class="legend-item"><span class="dot dot-5"></span>观察（#5+）</div>
+  </div>
+
+  <div class="cards-grid">
+
+    <!-- Ridley RIC -->
+    <div class="stock-card rank-1">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: RIC</div>
+          <div class="company-name">Ridley Corporation Limited</div>
+          <div class="sub-sector">化肥配送 / 动物营养</div>
+        </div>
+        <div class="rank-badge r1">1</div>
+      </div>
+      <div class="price-row">
+        <span class="price">约 A$3.2x</span>
+        <span class="change up">↑ 估计+2–3%</span>
+      </div>
+      <span class="rec-label buy">⭐ 强力买入</span>
+      <p class="desc">2025年9月以4.337亿澳元完成收购 Incitec Pivot 化肥配送业务，现控制澳大利亚东部约 46% 的化肥市场份额，年配送量约 220 万吨。中东局势导致尿素价格飙升 30–40%，Ridley 作为国内配送商可享受稀缺溢价，竞争壁垒极强。</p>
+    </div>
+
+    <!-- GrainCorp GNC -->
+    <div class="stock-card rank-1">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: GNC</div>
+          <div class="company-name">GrainCorp Limited</div>
+          <div class="sub-sector">农业综合 / 粮食处理 / 化肥相关</div>
+        </div>
+        <div class="rank-badge r1">2</div>
+      </div>
+      <div class="price-row">
+        <span class="price">A$7.11</span>
+        <span class="change up">↑ 分析师目标 $8.71 (+22.6%)</span>
+      </div>
+      <span class="rec-label buy">⭐ 强力买入</span>
+      <p class="desc">澳大利亚最大粮食处理商，受益于中东冲突推高全球粮价。Rabobank 2026年4月报告确认油菜籽价格因中东局势显著走强。分析师一致目标价 $8.71，较当前价溢价超 22%。直接受益于化肥价格上涨带来的粮食供应收紧。</p>
+    </div>
+
+    <!-- Agrimin AMN -->
+    <div class="stock-card rank-2">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: AMN</div>
+          <div class="company-name">Agrimin Limited</div>
+          <div class="sub-sector">硫酸钾（SOP）生产</div>
+        </div>
+        <div class="rank-badge r2">3</div>
+      </div>
+      <div class="price-row">
+        <span class="price">待查询</span>
+        <span class="change flat">— 实时价格请查雅虎财经</span>
+      </div>
+      <span class="rec-label buy-hold">买入</span>
+      <p class="desc">与美国批发化肥商 Gavilon Fertilizer 签订 7 年协议（2026年6月30日起），每年供应 5 万吨 SOP。Lake Mackay 项目是全球规模最大的 SOP 开发项目之一，受益于全球钾肥供应链去中心化趋势。</p>
+    </div>
+
+    <!-- Centrex CXM -->
+    <div class="stock-card rank-2">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: CXM</div>
+          <div class="company-name">Centrex Limited</div>
+          <div class="sub-sector">磷酸盐 / 钾盐开采</div>
+        </div>
+        <div class="rank-badge r2">4</div>
+      </div>
+      <div class="price-row">
+        <span class="price">待查询</span>
+        <span class="change flat">— 实时价格请查雅虎财经</span>
+      </div>
+      <span class="rec-label buy-hold">买入</span>
+      <p class="desc">拥有三个 100% 自有项目：Ardmore 磷酸盐矿（已生产）、Oxley 钾盐项目和 Goulburn 多金属项目。为澳大利亚和新西兰农业提供本土化肥原料，战略意义显著。</p>
+    </div>
+
+    <!-- Fertoz FTZ -->
+    <div class="stock-card rank-3">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: FTZ</div>
+          <div class="company-name">Fertoz Limited</div>
+          <div class="sub-sector">有机磷酸盐肥料</div>
+        </div>
+        <div class="rank-badge r3">5</div>
+      </div>
+      <div class="price-row">
+        <span class="price">待查询</span>
+        <span class="change flat">— 实时价格请查雅虎财经</span>
+      </div>
+      <span class="rec-label hold">买入/持有</span>
+      <p class="desc">北美再生磷酸盐化肥领域的先行者，在澳洲亦有盈利性有机化肥业务。受益于全球有机农业需求增长及磷酸盐价格上涨。体量较小，波动性较高。</p>
+    </div>
+
+    <!-- Australian Potash APC -->
+    <div class="stock-card rank-4">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: APC</div>
+          <div class="company-name">Australian Potash Limited</div>
+          <div class="sub-sector">硫酸钾（SOP）开发</div>
+        </div>
+        <div class="rank-badge r4">6</div>
+      </div>
+      <div class="price-row">
+        <span class="price">待查询</span>
+        <span class="change flat">— 实时价格请查雅虎财经</span>
+      </div>
+      <span class="rec-label speculative">投机性买入</span>
+      <p class="desc">Lake Wells SOP 项目位于西澳，距 Kalgoorlie 约 430 公里。项目处于开发早期，融资和建设进度存在不确定性。中长期若 SOP 价格持续高企有望释放价值，短期风险较高。</p>
+    </div>
+
+    <!-- Kalium Lakes KLL -->
+    <div class="stock-card rank-4">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: KLL</div>
+          <div class="company-name">Kalium Lakes Limited</div>
+          <div class="sub-sector">硫酸钾（SOP）生产</div>
+        </div>
+        <div class="rank-badge r4">7</div>
+      </div>
+      <div class="price-row">
+        <span class="price">待查询</span>
+        <span class="change flat">— 实时价格请查雅虎财经</span>
+      </div>
+      <span class="rec-label speculative">投机性买入</span>
+      <p class="desc">Beyondie SOP 项目是澳大利亚首个 SOP 生产项目，但面临产量爬坡和成本控制挑战。SOP 价格高企有望改善项目经济性。属小市值高波动股票。</p>
+    </div>
+
+    <!-- Reward Minerals RWD -->
+    <div class="stock-card rank-5">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: RWD</div>
+          <div class="company-name">Reward Minerals Limited</div>
+          <div class="sub-sector">钾盐勘探开发</div>
+        </div>
+        <div class="rank-badge r5">8</div>
+      </div>
+      <div class="price-row">
+        <span class="price">待查询</span>
+        <span class="change flat">— 实时价格请查雅虎财经</span>
+      </div>
+      <span class="rec-label watch">观察</span>
+      <p class="desc">Lake Disappointment 钾盐项目位于西澳，资源量可观。项目仍处于勘探/早期开发阶段，商业化生产仍需数年。属早期探矿股，风险较高，适合风险偏好强的投资者关注。</p>
+    </div>
+
+  </div><!-- /cards-grid fertilizer -->
+
+
+  <!-- ══════════ 能源板块 ══════════ -->
+  <div id="energy" class="section-header">
+    <h2>⚡ 能源板块股票</h2>
+    <span class="tag orange">按推荐度排序</span>
+  </div>
+
+  <!-- 能源分类：石油天然气 -->
+  <div style="margin-bottom:10px; color: var(--text-muted); font-size:0.85rem; font-weight:600;">🛢️ 石油与天然气</div>
+  <div class="cards-grid">
+
+    <!-- Woodside WDS -->
+    <div class="stock-card rank-1">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: WDS</div>
+          <div class="company-name">Woodside Energy Group Ltd</div>
+          <div class="sub-sector">石油 / 液化天然气（LNG）</div>
+        </div>
+        <div class="rank-badge r1">1</div>
+      </div>
+      <div class="price-row">
+        <span class="price">A$33.29</span>
+        <span class="change up">↑ +3.8% (4月9日)</span>
+      </div>
+      <span class="rec-label buy">⭐ 强力买入</span>
+      <p class="desc">澳大利亚最大石油天然气公司。Scarborough LNG 项目完成 94%，目标 2026 年 Q4 首次出气；Louisiana LNG 目标 2029 年首批 LNG；Trion 项目 2028 年首次出油。近一月股价+22.83%。中东局势使油价飙升直接利好。</p>
+    </div>
+
+    <!-- Santos STO -->
+    <div class="stock-card rank-1">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: STO</div>
+          <div class="company-name">Santos Limited</div>
+          <div class="sub-sector">石油 / LNG / 天然气</div>
+        </div>
+        <div class="rank-badge r1">2</div>
+      </div>
+      <div class="price-row">
+        <span class="price">A$7.95</span>
+        <span class="change up">↑ +2.5% (4月9日)</span>
+      </div>
+      <span class="rec-label buy">⭐ 强力买入</span>
+      <p class="desc">市值约 255 亿澳元。2026年1月 Barossa 天然气项目发出首批 LNG 货物，Pikka（阿拉斯加）项目 2026 年首次出油，预计 2027 年产量增长约 30%。近一月股价+16.79%。近期因中东临时停火油价波动，回调提供买点。</p>
+    </div>
+
+    <!-- Karoon KAR -->
+    <div class="stock-card rank-2">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: KAR</div>
+          <div class="company-name">Karoon Energy Ltd</div>
+          <div class="sub-sector">石油生产（巴西）</div>
+        </div>
+        <div class="rank-badge r2">3</div>
+      </div>
+      <div class="price-row">
+        <span class="price">A$1.955</span>
+        <span class="change up">↑ 近期+15%（ASX200最大涨幅）</span>
+      </div>
+      <span class="rec-label buy">买入</span>
+      <p class="desc">在巴西运营 Who Dat 油田，纯粹石油生产商，油价敏感度极高。3月布伦特原油从 $72.5 涨至 $107.5，KAR 成为 ASX200 最大赢家之一。分析师关注其是否能在中东冲突持续期间维持高油价受益。</p>
+    </div>
+
+    <!-- Beach Energy BPT -->
+    <div class="stock-card rank-2">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: BPT</div>
+          <div class="company-name">Beach Energy Limited</div>
+          <div class="sub-sector">石油 / 天然气（澳洲国内）</div>
+        </div>
+        <div class="rank-badge r2">4</div>
+      </div>
+      <div class="price-row">
+        <span class="price">A$1.15</span>
+        <span class="change up">↑ +4.57% (近期)</span>
+      </div>
+      <span class="rec-label buy-hold">买入</span>
+      <p class="desc">澳大利亚重要的油气生产商，主要在库珀盆地、西南昆士兰及西澳运营。受国内天然气价格支撑，估值相对低廉。3月随能源板块整体上行，目前处于技术性强势区间。</p>
+    </div>
+
+    <!-- Ampol ALD -->
+    <div class="stock-card rank-2">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: ALD</div>
+          <div class="company-name">Ampol Limited</div>
+          <div class="sub-sector">炼油 / 燃料零售</div>
+        </div>
+        <div class="rank-badge r2">5</div>
+      </div>
+      <div class="price-row">
+        <span class="price">近期强势</span>
+        <span class="change up">↑ +21.73% (近一月)</span>
+      </div>
+      <span class="rec-label buy-hold">买入</span>
+      <p class="desc">澳大利亚最大燃料零售商。FY2025：集团 RCOP EBITDA $14亿，RCOP EBIT $9.47亿，RCOP NPAT $4.29亿。油价上涨提升炼油利润率，近一月大涨超21%。业绩稳健，是能源板块的防御性选项。</p>
+    </div>
+
+    <!-- Viva Energy VEA -->
+    <div class="stock-card rank-3">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: VEA</div>
+          <div class="company-name">Viva Energy Group Limited</div>
+          <div class="sub-sector">炼油 / 能源零售</div>
+        </div>
+        <div class="rank-badge r3">6</div>
+      </div>
+      <div class="price-row">
+        <span class="price">A$1.83</span>
+        <span class="change up">↑ +3.39% (近期)</span>
+      </div>
+      <span class="rec-label hold">买入/持有</span>
+      <p class="desc">运营澳大利亚最后一座大型炼油厂（吉朗），兼营 Shell 品牌加油站。受益于油价上涨和炼化利润扩张。股价近期回升，但炼厂运营成本风险需关注。</p>
+    </div>
+
+  </div><!-- /石油天然气 cards -->
+
+  <!-- 能源分类：铀 & 核能 -->
+  <div style="margin: 28px 0 10px; color: var(--text-muted); font-size:0.85rem; font-weight:600;">☢️ 铀矿 & 核能</div>
+  <div class="cards-grid">
+
+    <!-- Paladin PDN -->
+    <div class="stock-card rank-1">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: PDN</div>
+          <div class="company-name">Paladin Energy Ltd</div>
+          <div class="sub-sector">铀矿生产（纳米比亚）</div>
+        </div>
+        <div class="rank-badge r1">1</div>
+      </div>
+      <div class="price-row">
+        <span class="price">强势区间</span>
+        <span class="change up">↑ 近期+8–12%</span>
+      </div>
+      <span class="rec-label buy">⭐ 强力买入</span>
+      <p class="desc">铀矿板块最低风险核心持仓。Langer Heinrich 矿（纳米比亚）2024年已恢复生产。铀长期合同价创历史新高 $90/磅，现货价 $82–83/磅（六个月内+26%）。AI 数据中心带动核电需求爆发，中长期逻辑极强。</p>
+    </div>
+
+    <!-- Boss Energy BOE -->
+    <div class="stock-card rank-1">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: BOE</div>
+          <div class="company-name">Boss Energy Limited</div>
+          <div class="sub-sector">铀矿生产（南澳）</div>
+        </div>
+        <div class="rank-badge r1">2</div>
+      </div>
+      <div class="price-row">
+        <span class="price">强势区间</span>
+        <span class="change up">↑ 近期+8–12%</span>
+      </div>
+      <span class="rec-label buy">⭐ 强力买入</span>
+      <p class="desc">Honeymoon 矿（南澳）已在产，另持有美国 Alta Mesa 项目 30% 权益，实现产能多元化。与 Paladin 并列为铀矿板块核心持仓。受益于微软、谷歌等科技巨头承诺核电供能数据中心的长期协议浪潮。</p>
+    </div>
+
+    <!-- Deep Yellow DYL -->
+    <div class="stock-card rank-3">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: DYL</div>
+          <div class="company-name">Deep Yellow Limited</div>
+          <div class="sub-sector">铀矿开发</div>
+        </div>
+        <div class="rank-badge r3">3</div>
+      </div>
+      <div class="price-row">
+        <span class="price">活跃区间</span>
+        <span class="change up">↑ 近期+8–12%</span>
+      </div>
+      <span class="rec-label speculative">投机性买入</span>
+      <p class="desc">Tumas 项目（纳米比亚）最终投资决定已推迟，Mulga Rock（西澳）可行性研究预计 2026 年 Q3 完成。开发阶段风险较高，但若铀价维持高位，估值上行空间可观。适合高风险偏好投资者。</p>
+    </div>
+
+    <!-- Bannerman BMN -->
+    <div class="stock-card rank-4">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: BMN</div>
+          <div class="company-name">Bannerman Energy Ltd</div>
+          <div class="sub-sector">铀矿开发（纳米比亚）</div>
+        </div>
+        <div class="rank-badge r4">4</div>
+      </div>
+      <div class="price-row">
+        <span class="price">活跃区间</span>
+        <span class="change up">↑ 与板块同步上涨</span>
+      </div>
+      <span class="rec-label speculative">投机性买入</span>
+      <p class="desc">Etango 铀矿项目（纳米比亚），资源量位居全球前列。尚未投产，需待融资方案落实。铀价超级周期预期是主要催化剂。属高风险开发期股票，适合博弈性资金。</p>
+    </div>
+
+  </div><!-- /铀矿 cards -->
+
+  <!-- 能源分类：可再生能源 & 公共事业 -->
+  <div style="margin: 28px 0 10px; color: var(--text-muted); font-size:0.85rem; font-weight:600;">🌿 可再生能源 & 公共事业</div>
+  <div class="cards-grid">
+
+    <!-- Origin Energy ORG -->
+    <div class="stock-card rank-2">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: ORG</div>
+          <div class="company-name">Origin Energy Limited</div>
+          <div class="sub-sector">综合能源 / 可再生能源转型</div>
+        </div>
+        <div class="rank-badge r2">1</div>
+      </div>
+      <div class="price-row">
+        <span class="price">近期强势</span>
+        <span class="change up">↑ +1.6% (近期单日)</span>
+      </div>
+      <span class="rec-label buy-hold">买入</span>
+      <p class="desc">澳大利亚领先的综合能源公司，同时布局风能、太阳能和储能，加速向清洁能源转型。天然气业务（APLNG）提供稳定现金流。电力市场改革为其带来定价机会，是兼顾转型和稳定的均衡配置。</p>
+    </div>
+
+    <!-- AGL AGL -->
+    <div class="stock-card rank-2">
+      <div class="card-top">
+        <div>
+          <div class="ticker">ASX: AGL</div>
+          <div class="company-name">AGL Energy Limited</div>
+          <div class="sub-sector">电力 / 可再生能源</div>
+        </div>
+        <div class="rank-badge r2">2</div>
+      </div>
+      <div class="price-row">
+        <span class="price">近期强势</span>
+        <span class="change up">↑ +2.0% (近期单日)</span>
+      </div>
+      <span class="rec-label buy-hold">买入</span>
+      <p class="desc">澳大利亚最大电力零售商之一，正积极推进煤炭电站退役和可再生能源大型项目投资。电价上涨环境下零售利润率改善。近期在能源板块整体上行中表现强劲，+2.0%单日涨幅领先防御性股票。</p>
+    </div>
+
+  </div><!-- /可再生能源 cards -->
+
+
+  <!-- ══════════ 完整股票速查表 ══════════ -->
+  <div class="section-header" style="margin-top:40px;">
+    <h2>📊 全部股票速查汇总表</h2>
+    <span class="tag">共 16 只</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>推荐排名</th>
+          <th>股票代码</th>
+          <th>公司名称</th>
+          <th>板块</th>
+          <th>子类别</th>
+          <th>参考价格 (AUD)</th>
+          <th>近期涨跌</th>
+          <th>推荐评级</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🥇 1</td><td class="td-ticker">RIC</td><td>Ridley Corporation</td><td>🌱 肥料</td><td>化肥配送</td><td class="td-price">~$3.2x</td><td><span class="change up">↑ ~+2–3%</span></td><td><span class="rec-label buy" style="font-size:.72rem;padding:2px 8px;">强力买入</span></td>
+        </tr>
+        <tr>
+          <td>🥇 2</td><td class="td-ticker">GNC</td><td>GrainCorp Limited</td><td>🌱 肥料</td><td>农业综合</td><td class="td-price">$7.11</td><td><span class="change up">↑ 目标 +22.6%</span></td><td><span class="rec-label buy" style="font-size:.72rem;padding:2px 8px;">强力买入</span></td>
+        </tr>
+        <tr>
+          <td>🥇 3</td><td class="td-ticker">WDS</td><td>Woodside Energy</td><td>⚡ 能源</td><td>油气/LNG</td><td class="td-price">$33.29</td><td><span class="change up">↑ +3.8%</span></td><td><span class="rec-label buy" style="font-size:.72rem;padding:2px 8px;">强力买入</span></td>
+        </tr>
+        <tr>
+          <td>🥇 4</td><td class="td-ticker">STO</td><td>Santos Limited</td><td>⚡ 能源</td><td>油气/LNG</td><td class="td-price">$7.95</td><td><span class="change up">↑ +2.5%</span></td><td><span class="rec-label buy" style="font-size:.72rem;padding:2px 8px;">强力买入</span></td>
+        </tr>
+        <tr>
+          <td>🥇 5</td><td class="td-ticker">PDN</td><td>Paladin Energy</td><td>⚡ 能源</td><td>铀矿</td><td class="td-price">强势区间</td><td><span class="change up">↑ +8–12%</span></td><td><span class="rec-label buy" style="font-size:.72rem;padding:2px 8px;">强力买入</span></td>
+        </tr>
+        <tr>
+          <td>🥇 6</td><td class="td-ticker">BOE</td><td>Boss Energy</td><td>⚡ 能源</td><td>铀矿</td><td class="td-price">强势区间</td><td><span class="change up">↑ +8–12%</span></td><td><span class="rec-label buy" style="font-size:.72rem;padding:2px 8px;">强力买入</span></td>
+        </tr>
+        <tr>
+          <td>⭐ 7</td><td class="td-ticker">AMN</td><td>Agrimin Limited</td><td>🌱 肥料</td><td>SOP钾肥</td><td class="td-price">待查询</td><td><span class="change flat">—</span></td><td><span class="rec-label buy-hold" style="font-size:.72rem;padding:2px 8px;">买入</span></td>
+        </tr>
+        <tr>
+          <td>⭐ 8</td><td class="td-ticker">CXM</td><td>Centrex Limited</td><td>🌱 肥料</td><td>磷酸盐/钾盐</td><td class="td-price">待查询</td><td><span class="change flat">—</span></td><td><span class="rec-label buy-hold" style="font-size:.72rem;padding:2px 8px;">买入</span></td>
+        </tr>
+        <tr>
+          <td>⭐ 9</td><td class="td-ticker">KAR</td><td>Karoon Energy</td><td>⚡ 能源</td><td>石油（巴西）</td><td class="td-price">$1.955</td><td><span class="change up">↑ +15%</span></td><td><span class="rec-label buy-hold" style="font-size:.72rem;padding:2px 8px;">买入</span></td>
+        </tr>
+        <tr>
+          <td>⭐ 10</td><td class="td-ticker">BPT</td><td>Beach Energy</td><td>⚡ 能源</td><td>油气（澳洲）</td><td class="td-price">$1.15</td><td><span class="change up">↑ +4.57%</span></td><td><span class="rec-label buy-hold" style="font-size:.72rem;padding:2px 8px;">买入</span></td>
+        </tr>
+        <tr>
+          <td>⭐ 11</td><td class="td-ticker">ALD</td><td>Ampol Limited</td><td>⚡ 能源</td><td>炼油/零售</td><td class="td-price">近期强势</td><td><span class="change up">↑ +21.7%（近月）</span></td><td><span class="rec-label buy-hold" style="font-size:.72rem;padding:2px 8px;">买入</span></td>
+        </tr>
+        <tr>
+          <td>⭐ 12</td><td class="td-ticker">ORG</td><td>Origin Energy</td><td>⚡ 能源</td><td>综合/可再生</td><td class="td-price">近期强势</td><td><span class="change up">↑ +1.6%</span></td><td><span class="rec-label buy-hold" style="font-size:.72rem;padding:2px 8px;">买入</span></td>
+        </tr>
+        <tr>
+          <td>⭐ 13</td><td class="td-ticker">AGL</td><td>AGL Energy</td><td>⚡ 能源</td><td>电力/可再生</td><td class="td-price">近期强势</td><td><span class="change up">↑ +2.0%</span></td><td><span class="rec-label buy-hold" style="font-size:.72rem;padding:2px 8px;">买入</span></td>
+        </tr>
+        <tr>
+          <td>△ 14</td><td class="td-ticker">VEA</td><td>Viva Energy Group</td><td>⚡ 能源</td><td>炼油/零售</td><td class="td-price">$1.83</td><td><span class="change up">↑ +3.39%</span></td><td><span class="rec-label hold" style="font-size:.72rem;padding:2px 8px;">买入/持有</span></td>
+        </tr>
+        <tr>
+          <td>△ 15</td><td class="td-ticker">FTZ</td><td>Fertoz Limited</td><td>🌱 肥料</td><td>有机磷肥</td><td class="td-price">待查询</td><td><span class="change flat">—</span></td><td><span class="rec-label hold" style="font-size:.72rem;padding:2px 8px;">买入/持有</span></td>
+        </tr>
+        <tr>
+          <td>△ 16</td><td class="td-ticker">DYL</td><td>Deep Yellow</td><td>⚡ 能源</td><td>铀矿开发</td><td class="td-price">活跃区间</td><td><span class="change up">↑ +8–12%</span></td><td><span class="rec-label speculative" style="font-size:.72rem;padding:2px 8px;">投机买入</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ══════════ 热门新闻 ══════════ -->
+  <div id="news" class="section-header">
+    <h2>🔥 近期热门新闻</h2>
+    <span class="tag" style="background:#e65100;">高度关注</span>
+  </div>
+
+  <div class="news-grid">
+
+    <div class="news-card">
+      <span class="news-tag tag-macro">宏观 / 地缘政治</span>
+      <div class="news-title">🇺🇸🇮🇱 美以对伊朗发动空袭，霍尔木兹海峡实际封闭</div>
+      <div class="news-body">2026年2月28日，美国与以色列对伊朗发动打击。3月初伊朗实际封锁霍尔木兹海峡，布伦特原油从 $72.5 飙升至 3月底的 $107.5（一月内+48%），全球尿素价格单周暴涨19%至 $590+/吨。能源和肥料板块迎来结构性利好。</div>
+      <div class="news-date">📅 2026年2月28日 — 3月持续发酵</div>
+    </div>
+
+    <div class="news-card">
+      <span class="news-tag tag-energy">能源</span>
+      <div class="news-title">🕊️ 美伊临时停火协议，油价急剧波动</div>
+      <div class="news-body">2026年4月8日，特朗普总统同意暂停对伊攻击两周，换取伊朗保障霍尔木兹海峡商业通行。油价大幅回落，WDS 单日跌约11%，STO 跌约6%。次日（4月9日）均大幅反弹：WDS +3.8%，STO +2.5%。停火协议脆弱性依然是市场最大变量。</div>
+      <div class="news-date">📅 2026年4月8–9日</div>
+    </div>
+
+    <div class="news-card">
+      <span class="news-tag tag-energy">能源</span>
+      <div class="news-title">🚀 Karoon Energy 成为 ASX200 3月最大赢家</div>
+      <div class="news-body">油价暴涨期间，Karoon Energy（KAR）单日大涨超15%，收于 A$1.78，成为整个 ASX200 涨幅最大个股。分析师探讨若美伊战争持续全年，KAR 是否为最受益 ASX 股票。巴西业务使其直接锚定国际油价。</div>
+      <div class="news-date">📅 2026年3–4月</div>
+    </div>
+
+    <div class="news-card">
+      <span class="news-tag tag-fertilizer">肥料</span>
+      <div class="news-title">🌾 Ridley 完成收购，掌控东澳 46% 化肥市场</div>
+      <div class="news-body">Ridley Corporation（RIC）于2025年9月完成以 4.337 亿澳元收购 Incitec Pivot 化肥配送业务，成为澳大利亚东部最大化肥配送商。中东封锁导致进口尿素大量短缺，Ridley 作为本土配送商可在供应紧张期享受大幅溢价优势。</div>
+      <div class="news-date">📅 2025年9月 — 2026年持续受益</div>
+    </div>
+
+    <div class="news-card">
+      <span class="news-tag tag-uranium">铀矿 / 核能</span>
+      <div class="news-title">⚛️ 铀长期合同价创历史新高 $90/磅</div>
+      <div class="news-body">铀长期合同价突破 $90/磅历史高位，现货价 $82–83/磅（六个月内+26%）。ASX 铀矿股 PDN、BOE、DYL、BMN 集体跳涨8–12%。微软、谷歌等科技巨头宣布以核电为 AI 数据中心供能，带来史无前例的长期需求。</div>
+      <div class="news-date">📅 2026年3–4月</div>
+    </div>
+
+    <div class="news-card">
+      <span class="news-tag tag-fertilizer">肥料</span>
+      <div class="news-title">💰 美银警告：中东局势威胁全球65–70%尿素供应</div>
+      <div class="news-body">美国银行发出报告警告，当前地缘局势威胁全球65%至70%的尿素供应，价格已较战前水平上涨30–40%。澳大利亚农民面临肥料成本暴涨，催生国内本土化肥生产商的迫切需求，Agrimin、Centrex 等 ASX 公司获得战略背书。</div>
+      <div class="news-date">📅 2026年3月</div>
+    </div>
+
+    <div class="news-card">
+      <span class="news-tag tag-energy">能源</span>
+      <div class="news-title">🛢️ Woodside Scarborough LNG 项目 94% 完工</div>
+      <div class="news-body">Woodside 旗舰 Scarborough LNG 项目已完工 94%，预计 2026 年 Q4 实现首次出气，将大幅提升公司产量和现金流。Louisiana LNG（2029年）和 Trion 项目（2028年）也在推进中，未来三年是重要产量增长窗口期。</div>
+      <div class="news-date">📅 2026年4月</div>
+    </div>
+
+    <div class="news-card">
+      <span class="news-tag tag-energy">能源</span>
+      <div class="news-title">🌊 Santos Barossa 项目首批 LNG 出货</div>
+      <div class="news-body">Santos 于2026年1月从 Barossa 天然气项目完成首批 LNG 货物出口，标志项目正式进入商业运营阶段。Pikka（阿拉斯加）项目 2026 年即将实现首次出油，管理层预计 2027 年前产量增长约 30%，中期增长故事清晰。</div>
+      <div class="news-date">📅 2026年1月</div>
+    </div>
+
+    <div class="news-card">
+      <span class="news-tag tag-fertilizer">肥料</span>
+      <div class="news-title">🤝 Agrimin 签订 7 年 SOP 供应协议</div>
+      <div class="news-body">Agrimin（AMN）与美国 Gavilon Fertilizer 签订具有约束力的协议：自2026年6月30日起，每年向美国供应 5 万吨硫酸钾（SOP）。协议期7年，为项目提供了长期稳定的收入保障，显著降低开发风险，是 Lake Mackay 项目的重要里程碑。</div>
+      <div class="news-date">📅 2026年4月</div>
+    </div>
+
+  </div><!-- /news-grid -->
+
+
+  <!-- ══════════ 数据来源 ══════════ -->
+  <div id="sources" class="section-header">
+    <h2>🔗 数据来源网址</h2>
+    <span class="tag purple">Claude 资料搜集 — 2026年4月10日</span>
+  </div>
+  <div class="sources-list">
+
+    <div class="source-item">
+      <span class="icon">📰</span>
+      <div>
+        <a href="https://stocksdownunder.com/asx-agriculture-stocks-to-watch-amid-iran-war/" target="_blank">Stocks Down Under — 伊朗战争背景下4只 ASX 农业股票分析</a>
+        <div class="src-desc">肥料 / GNC、RIC、AMN、CXM 分析，中东局势影响</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">📊</span>
+      <div>
+        <a href="https://investingnews.com/daily/resource-investing/agriculture-investing/potash-investing/asx-listed-potash-stocks/" target="_blank">Investing News Network — ASX 钾盐股票列表</a>
+        <div class="src-desc">KLL、AMN、APC、RWD、TMG 等 SOP 公司详情</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">📈</span>
+      <div>
+        <a href="https://kalkine.com.au/news/energy/how-to-invest-in-asx-energy-stocks-in-2026-key-themes-risks-catalysts-and-portfolio-strategy" target="_blank">Kalkine — 2026年 ASX 能源股投资策略指南</a>
+        <div class="src-desc">2026年能源板块主题、风险、催化剂综合分析</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">🔥</span>
+      <div>
+        <a href="https://www.fool.com.au/2026/04/09/asx-200-energy-shares-whipsaw-amid-fragile-ceasefire/" target="_blank">Motley Fool Australia — 能源股在脆弱停火中剧烈波动</a>
+        <div class="src-desc">2026年4月9日 WDS、STO、KAR 等最新价格与分析</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">⚡</span>
+      <div>
+        <a href="https://www.fool.com.au/2026/04/01/how-asx-200-energy-shares-like-santos-beach-and-woodside-surged-in-marchs-sinking-market/" target="_blank">Motley Fool — 3月 ASX 能源股在下跌市中逆势暴涨</a>
+        <div class="src-desc">3月 WDS、BPT、KAR 等涨幅数据及宏观背景</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">☢️</span>
+      <div>
+        <a href="https://kalkine.com.au/news/energy/riding-nuclear-renaissance-into-2026-and-beyond-5-asx-uranium-stocks-to-buy" target="_blank">Kalkine — 核能文艺复兴：5只 ASX 铀矿股</a>
+        <div class="src-desc">PDN、BOE、DYL、BMN 等铀矿股深度分析</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">🌾</span>
+      <div>
+        <a href="https://stocksdownunder.com/fertiliser-stocks-to-buy-on-the-asx/" target="_blank">Stocks Down Under — ASX 最佳肥料股票推荐</a>
+        <div class="src-desc">FTZ、CXM 等肥料公司详细基本面分析</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">💡</span>
+      <div>
+        <a href="https://www.livewiremarkets.com/wires/is-karoon-energy-the-best-asx-stock-if-the-us-iran-war-lasts-all-year" target="_blank">Livewire — 若美伊战争持续，KAR 是最佳 ASX 股票吗？</a>
+        <div class="src-desc">Karoon Energy 在高油价环境下的受益逻辑深度分析</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">📉</span>
+      <div>
+        <a href="https://www.google.com/finance/quote/WDS:ASX" target="_blank">Google Finance — WDS ASX 实时报价</a>
+        <div class="src-desc">Woodside Energy 实时股价（需翻墙访问可能受限）</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">🔎</span>
+      <div>
+        <a href="https://finance.yahoo.com/quote/GNC.AX/" target="_blank">Yahoo Finance — GNC.AX GrainCorp 报价</a>
+        <div class="src-desc">GrainCorp 股价、分析师目标价等数据</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">🌏</span>
+      <div>
+        <a href="https://discoveryalert.com.au/best-asx-uranium-stocks-2026/" target="_blank">Discovery Alert — 2026年 ASX 顶级铀矿投资选择</a>
+        <div class="src-desc">铀矿超级周期详细分析及各公司投资要点</div>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <span class="icon">🏭</span>
+      <div>
+        <a href="https://stocksdownunder.com/asx-energy-stocks-surging-on-iran-oil-shock/" target="_blank">Stocks Down Under — 伊朗石油冲击下飙升的 ASX 能源股</a>
+        <div class="src-desc">WDS、STO、KAR 在油价冲击下的表现和估值分析</div>
+      </div>
+    </div>
+
+  </div><!-- /sources-list -->
+
+</main>
+
+<footer>
+  <p>⚠️ <strong>免责声明</strong>：本页面所有信息仅供参考，不构成任何投资建议或邀约。股票价格具有波动性，历史表现不代表未来收益。投资者在做出任何投资决策前，应自行进行尽职调查并咨询持牌专业财务顾问。</p>
+  <p style="margin-top:8px;">资料由 Claude AI 整合自公开网络信息 | 收集日期：<strong>2026年4月10日（周五）</strong></p>
+</footer>
+
+</body>
+</html>
